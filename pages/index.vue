@@ -17,8 +17,8 @@ function handleStart() {
     </h1>
 
     <p class="text-xl text-gray-500 dark:text-gray-400 mb-10 text-center max-w-2xl">
-      找出你心目中的 Top 10 角色！系統將會一次顯示兩名角色，
-      請點擊你比較喜歡的那一位。
+      找出你心目中的 Top 10 角色！<br>
+      系統將會一次顯示兩名角色，請點擊你比較喜歡的那一位。
     </p>
 
     <UButton
@@ -30,7 +30,7 @@ function handleStart() {
     </UButton>
 
     <div class="mt-12 text-sm text-gray-400">
-      包含作品：防風少年 (Wind Breaker), 排球少年 (Haikyu!!), 我的英雄學院 (My Hero Academia)
+      包含作品：防風少年, 排球少年, 我的英雄學院
     </div>
   </UContainer>
 </template>

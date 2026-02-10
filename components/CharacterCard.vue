@@ -38,7 +38,8 @@ const seriesLabel = computed(() => {
           v-if="!imageError"
           :src="currentSrc"
           :alt="character.name"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-cover select-none"
+          draggable="false"
           @error="handleImageError"
         >
         <div v-else class="text-4xl font-bold text-gray-400">
