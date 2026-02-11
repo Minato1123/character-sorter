@@ -34,6 +34,10 @@ export const useSorter = () => {
   // 改為響應式變數
   const comparisonCount = useState<number>('sorter-comparison-count', () => 0)
   const totalEstimatedComparisons = useState<number>('sorter-total-comparisons', () => 0)
+  
+  // 時間記錄
+  const startTime = useState<number | null>('sorter-start-time', () => null)
+  const endTime = useState<number | null>('sorter-end-time', () => null)
 
   const userChoose = (a: Character, b: Character): Promise<Character> => {
     currentPair.value = [a, b]
@@ -93,6 +97,10 @@ export const useSorter = () => {
     sortedList.value = []
     progress.value = 0
     comparisonCount.value = 0
+    
+    // 記錄開始時間
+    startTime.value = Date.now()
+    endTime.value = null
 
     // Deep copy to avoid mutating original source
     // Implement Stratified/Interleaved Shuffle to prevent consecutive series
@@ -142,6 +150,9 @@ export const useSorter = () => {
     sortedList.value = result
     isFinished.value = true
     progress.value = 100
+    
+    // 記錄結束時間
+    endTime.value = Date.now()
   }
 
   const setSelectedSeries = (series: string[]) => {
@@ -159,6 +170,9 @@ export const useSorter = () => {
     progress,
     selectedSeries,
     remainingComparisons,
+    comparisonCount,
+    startTime,
+    endTime,
     startSorting,
     selectWinner,
     setSelectedSeries

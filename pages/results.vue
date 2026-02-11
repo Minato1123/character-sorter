@@ -2,7 +2,7 @@
 import { characters } from '~/utils/characters'
 import { generateTop10Image } from '~/utils/imageGenerator'
 
-const { sortedList, startSorting, selectedSeries } = useSorter()
+const { sortedList, startSorting, selectedSeries, comparisonCount, startTime, endTime } = useSorter()
 
 // 動態計算 Top N
 const topCount = computed(() => Math.min(10, sortedList.value.length))
@@ -11,6 +11,34 @@ const remaining = computed(() => sortedList.value.slice(topCount.value))
 
 // 標題
 const titleText = computed(() => `你的 Top ${topCount.value} 排名`)
+
+// 統計資訊
+const totalComparisons = computed(() => comparisonCount.value)
+
+const totalTimeSeconds = computed(() => {
+  if (!startTime.value || !endTime.value) return 0
+  return Math.floor((endTime.value - startTime.value) / 1000) // 轉換為秒
+})
+
+const formattedTime = computed(() => {
+  const seconds = totalTimeSeconds.value
+  
+  if (seconds < 60) {
+    // 小於 1 分鐘：顯示為 00:XX
+    return `00:${seconds.toString().padStart(2, '0')}`
+  } else if (seconds < 3600) {
+    // 小於 1 小時：顯示為 MM:SS
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+  } else {
+    // 超過 1 小時：顯示為 HH:MM:SS
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const remainingSeconds = seconds % 60
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+})
 
 const restart = () => {
   navigateTo({ name: 'index' })
@@ -71,7 +99,7 @@ const getSeriesColor = (series: string) => {
       </h1>
       
       <!-- 本次包含作品（新增） -->
-      <div class="flex items-center justify-center gap-2 mb-4 text-sm text-gray-500 dark:text-gray-400">
+      <div class="flex items-center justify-center gap-2 mb-2 text-sm text-gray-500 dark:text-gray-400">
         <span>本次包含作品：</span>
         <UBadge 
           v-for="series in selectedSeries" 
@@ -83,6 +111,11 @@ const getSeriesColor = (series: string) => {
           {{ getSeriesLabel(series) }}
         </UBadge>
       </div>
+      
+      <!-- 統計資訊（新增） -->
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">
+        測驗用時 {{ formattedTime }} ｜ 總對決次數 {{ totalComparisons }} 次
+      </p>
       
       <div class="flex justify-center gap-4">
         <UButton icon="i-heroicons-arrow-path" color="gray" @click="restart">
