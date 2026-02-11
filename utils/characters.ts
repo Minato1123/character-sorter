@@ -38,7 +38,7 @@ export const characters: Character[] = [
   { id: 'hq-24', name: '佐久早聖臣', series: 'Haikyu', image: 'images/排球少年/佐久早聖臣.jpg' },
   { id: 'hq-25', name: '白布賢二郎', series: 'Haikyu', image: 'images/排球少年/白布賢二郎.jpg' },
   { id: 'hq-26', name: '昼神幸郎', series: 'Haikyu', image: 'images/排球少年/昼神幸郎.jpg' },
-  { id: 'hq-27', name: '瀨見英太', series: 'Haikyu', image: 'images/排球少年/瀨見英太.jpg'}
+  { id: 'hq-27', name: '瀨見英太', series: 'Haikyu', image: 'images/排球少年/瀨見英太.jpg'},
 
   // MHA
   { id: 'mha-1', name: '綠谷出久', series: 'MHA', image: 'images/我的英雄學院/綠谷出久.jpg' },
@@ -65,7 +65,7 @@ export const characters: Character[] = [
   { id: 'mha-22', name: '白雲朧（黑霧）', series: 'MHA', image: 'images/我的英雄學院/白雲朧.jpg' },
   { id: 'mha-23', name: '迫壓紘（壓縮先生）', series: 'MHA', image: 'images/我的英雄學院/迫壓紘.jpg' },
   { id: 'mha-24', name: '治崎廻', series: 'MHA', image: 'images/我的英雄學院/治崎廻.jpg' },
-  { id: 'mha-25', name: '塚內直正', series: 'MHA', image: 'images/我的英雄學院/塚內直正.jpg' },
-  { id: 'mha-26', name: '轟炎司', series: 'MHA', image: 'images/我的英雄學院/轟炎司.jpg' },
+  // { id: 'mha-25', name: '塚內直正', series: 'MHA', image: 'images/我的英雄學院/塚內直正.jpg' },
+  // { id: 'mha-26', name: '轟炎司', series: 'MHA', image: 'images/我的英雄學院/轟炎司.jpg' },
   { id: 'mha-27', name: '壞理', series: 'MHA', image: 'images/我的英雄學院/壞理.jpg' },
 ]

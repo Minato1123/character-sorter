@@ -6,5 +6,8 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
   app: {
     baseURL: '/character-sorter/',
+    head: {
+      title: '動漫角色二選一'
+    }
   },
 })
