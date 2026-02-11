@@ -39,6 +39,7 @@ export const characters: Character[] = [
   { id: 'hq-25', name: '白布賢二郎', series: 'Haikyu', image: 'images/排球少年/白布賢二郎.jpg' },
   { id: 'hq-26', name: '昼神幸郎', series: 'Haikyu', image: 'images/排球少年/昼神幸郎.jpg' },
   { id: 'hq-27', name: '瀨見英太', series: 'Haikyu', image: 'images/排球少年/瀨見英太.jpg'},
+  { id: 'hq-28', name: '五色工', series: 'Haikyu', image: 'images/排球少年/五色工.jpg'},
 
   // MHA
   { id: 'mha-1', name: '綠谷出久', series: 'MHA', image: 'images/我的英雄學院/綠谷出久.jpg' },
