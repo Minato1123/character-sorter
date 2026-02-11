@@ -121,6 +121,7 @@ function getRankColor(rank: number): string {
 
 /**
  * 繪製系列標籤（圓角矩形背景 + 文字）
+ * 返回繪製的總寬度（包含 padding）
  */
 function drawSeriesBadge(
   ctx: CanvasRenderingContext2D,
@@ -129,7 +130,7 @@ function drawSeriesBadge(
   y: number,
   fontSize: number = 24,
   align: 'left' | 'center' = 'center'
-) {
+): number {
   const labels: Record<string, { text: string; bg: string; color: string }> = {
     WindBreaker: { text: '防風少年', bg: '#DBEAFE', color: '#1E40AF' },
     Haikyu: { text: '排球少年', bg: '#FED7AA', color: '#C2410C' },
@@ -137,7 +138,7 @@ function drawSeriesBadge(
   }
   
   const badge = labels[series]
-  if (!badge) return
+  if (!badge) return 0
   
   // 設定字體以測量文字寬度（使用動態 fontSize）
   ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
@@ -166,13 +167,18 @@ function drawSeriesBadge(
     color: badge.color,
     align: 'center'
   })
+  
+  return width
 }
 
 /**
  * 主函數：生成 Top 10 排名圖片（1600x1600px, 1:1）
  * 佈局：3x3 + 1 特殊（第一名放大在上方）
  */
-export async function generateTop10Image(characters: Character[]): Promise<Blob> {
+export async function generateTop10Image(
+  characters: Character[],
+  includedSeries: string[] = ['WindBreaker', 'Haikyu', 'MHA']
+): Promise<Blob> {
   // 創建畫布
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
@@ -188,8 +194,21 @@ export async function generateTop10Image(characters: Character[]): Promise<Blob>
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, 1600, 1600)
   
-  // 2. 繪製右上角「Top 10」標記
-  drawText(ctx, 'Top 10', 1520, 60, {
+  // 2. 繪製右上角：系列 Badge（左） + Top N 標記（右）
+  const topLabel = characters.length >= 10 ? 'Top 10' : `Top ${characters.length}`
+  
+  // 繪製系列 Badges（從左側開始）
+  let badgeX = 60
+  const badgeY = 60
+  const badgeGap = 10  // Badge 之間的間距
+  
+  for (const series of includedSeries) {
+    const badgeWidth = drawSeriesBadge(ctx, series, badgeX, badgeY, 18, 'left')
+    badgeX += badgeWidth + badgeGap
+  }
+  
+  // 繪製 Top N（右對齊）
+  drawText(ctx, topLabel, 1520, 60, {
     fontSize: 30,
     fontWeight: 'bold',
     color: '#9CA3AF',

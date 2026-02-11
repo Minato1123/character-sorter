@@ -4,8 +4,6 @@ import type { Character } from '~/types/character'
 // This ensures that the promise resolver created in startSorting() remains accessible
 // when the user navigates to the battle page and triggers selectWinner().
 let resolveSelection: ((winner: Character) => void) | null = null
-let comparisonCount = 0
-let totalEstimatedComparisons = 0
 
 // Helper to simulate merge sort and count required comparisons
 const countComparisons = (arr: Character[]): number => {
@@ -31,6 +29,11 @@ export const useSorter = () => {
   const sortedList = useState<Character[]>('sorter-results', () => [])
   const isFinished = useState<boolean>('sorter-finished', () => false)
   const progress = useState<number>('sorter-progress', () => 0)
+  const selectedSeries = useState<string[]>('sorter-selected-series', () => ['WindBreaker', 'Haikyu', 'MHA'])
+  
+  // 改為響應式變數
+  const comparisonCount = useState<number>('sorter-comparison-count', () => 0)
+  const totalEstimatedComparisons = useState<number>('sorter-total-comparisons', () => 0)
 
   const userChoose = (a: Character, b: Character): Promise<Character> => {
     currentPair.value = [a, b]
@@ -46,9 +49,9 @@ export const useSorter = () => {
       currentPair.value = null
       
       // Update progress
-      comparisonCount++
-      if (totalEstimatedComparisons > 0) {
-        progress.value = Math.min(Math.round((comparisonCount / totalEstimatedComparisons) * 100), 99)
+      comparisonCount.value++
+      if (totalEstimatedComparisons.value > 0) {
+        progress.value = Math.min(Math.round((comparisonCount.value / totalEstimatedComparisons.value) * 100), 99)
       }
     }
   }
@@ -89,9 +92,7 @@ export const useSorter = () => {
     isFinished.value = false
     sortedList.value = []
     progress.value = 0
-    comparisonCount = 0
-    // N log N approximation
-    // totalEstimatedComparisons = list.length * Math.log2(list.length)
+    comparisonCount.value = 0
 
     // Deep copy to avoid mutating original source
     // Implement Stratified/Interleaved Shuffle to prevent consecutive series
@@ -133,7 +134,7 @@ export const useSorter = () => {
     // Note: Since we don't know the exact winners, we use the worst-case scenario
     // for merge sort which is (N log N) - N + 1 comparisons
     // But since our recursive structure is fixed, we can just sum (left.length + right.length - 1) for each merge
-    totalEstimatedComparisons = countComparisons(interleaved)
+    totalEstimatedComparisons.value = countComparisons(interleaved)
     
     // Sort
     const result = await mergeSort(interleaved)
@@ -143,12 +144,23 @@ export const useSorter = () => {
     progress.value = 100
   }
 
+  const setSelectedSeries = (series: string[]) => {
+    selectedSeries.value = series
+  }
+
+  const remainingComparisons = computed(() => {
+    return Math.max(0, totalEstimatedComparisons.value - comparisonCount.value)
+  })
+
   return {
     currentPair,
     sortedList,
     isFinished,
     progress,
+    selectedSeries,
+    remainingComparisons,
     startSorting,
-    selectWinner
+    selectWinner,
+    setSelectedSeries
   }
 }
