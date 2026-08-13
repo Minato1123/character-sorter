@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { characters } from '~/utils/characters'
-import { getSeriesColor, seriesLabelMap } from '~/utils/series'
+import { getSeriesColor, seriesColorMap, seriesLabelMap } from '~/utils/series'
 
 const props = defineProps<{ modelValue: Record<string, boolean>, excludedIds: string[] }>()
 const emit = defineEmits<{
@@ -59,17 +59,21 @@ function saveCharacterDialog() {
 }
 
 function seriesTextColor(series: string) {
-  if (series === 'WindBreaker') return 'text-blue-500'
-  if (series === 'Haikyu') return 'text-orange-500'
-  if (series === 'MHA') return 'text-red-500'
+  const color = seriesColorMap[series as keyof typeof seriesColorMap]
+  if (color === 'blue') return 'text-blue-500'
+  if (color === 'orange') return 'text-orange-500'
+  if (color === 'red') return 'text-red-500'
+  if (color === 'sky') return 'text-sky-500'
   return 'text-gray-500'
 }
 
 function seriesOutlineColor(series: string) {
-  if (series === 'WindBreaker') return 'border-blue-500 dark:border-blue-400'
-  if (series === 'Haikyu') return 'border-orange-500 dark:border-orange-400'
-  if (series === 'MHA') return 'border-red-500 dark:border-red-400'
-  if (series === 'MP100') return 'border-gray-700 dark:border-gray-300'
+  const color = seriesColorMap[series as keyof typeof seriesColorMap]
+  if (color === 'blue') return 'border-blue-500 dark:border-blue-400'
+  if (color === 'orange') return 'border-orange-500 dark:border-orange-400'
+  if (color === 'red') return 'border-red-500 dark:border-red-400'
+  if (color === 'sky') return 'border-sky-500 dark:border-sky-400'
+  if (color === 'gray') return 'border-gray-700 dark:border-gray-300'
   return 'border-gray-200 dark:border-gray-800'
 }
 </script>
