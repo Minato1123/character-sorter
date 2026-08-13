@@ -177,7 +177,8 @@ function drawSeriesBadge(
  */
 export async function generateTop10Image(
   characters: Character[],
-  includedSeries: string[] = ['WindBreaker', 'Haikyu', 'MHA']
+  includedSeries: string[] = ['WindBreaker', 'Haikyu', 'MHA'],
+  isRandomRanking: boolean = false
 ): Promise<Blob> {
   // 創建畫布
   const canvas = document.createElement('canvas')
@@ -195,7 +196,9 @@ export async function generateTop10Image(
   ctx.fillRect(0, 0, 1600, 1600)
   
   // 2. 繪製右上角：系列 Badge（左） + Top N 標記（右）
-  const topLabel = characters.length >= 10 ? 'Top 10' : `Top ${characters.length}`
+  const topLabel = isRandomRanking
+    ? (characters.length >= 10 ? '隨機 Top 10' : `隨機 Top ${characters.length}`)
+    : (characters.length >= 10 ? 'Top 10' : `Top ${characters.length}`)
   
   // 繪製系列 Badges（從左側開始）
   let badgeX = 60
