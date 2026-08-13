@@ -64,11 +64,24 @@ function seriesTextColor(series: string) {
   if (series === 'MHA') return 'text-red-500'
   return 'text-gray-500'
 }
+
+function seriesOutlineColor(series: string) {
+  if (series === 'WindBreaker') return 'border-blue-500 dark:border-blue-400'
+  if (series === 'Haikyu') return 'border-orange-500 dark:border-orange-400'
+  if (series === 'MHA') return 'border-red-500 dark:border-red-400'
+  if (series === 'MP100') return 'border-gray-700 dark:border-gray-300'
+  return 'border-gray-200 dark:border-gray-800'
+}
 </script>
 
 <template>
   <div class="space-y-2">
-    <div v-for="series in seriesOptions" :key="series.value" class="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-800">
+    <div
+      v-for="series in seriesOptions"
+      :key="series.value"
+      class="flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors"
+      :class="modelValue[series.value] ? seriesOutlineColor(series.value) : 'border-gray-200 dark:border-gray-800'"
+    >
       <UCheckbox :model-value="modelValue[series.value]" :label="series.label" :color="getSeriesColor(series.value)" @update:model-value="updateSeries(series.value, $event)" />
       <span v-if="excludedCount(series.value) > 0" class="text-xs font-semibold" :class="seriesTextColor(series.value)">-{{ excludedCount(series.value) }}</span>
       <UButton class="ml-auto" color="gray" variant="ghost" size="xs" icon="i-heroicons-adjustments-horizontal" @click="openCharacterDialog(series.value)">

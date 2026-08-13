@@ -15,7 +15,7 @@ export const seriesColorMap: Record<Series, string> = {
   Haikyu: 'orange',
   MHA: 'red',
   MP100: 'gray',
-  BB: 'skyblue'
+  BB: 'sky'
 }
 
 export function getSeriesLabel(series: string) {

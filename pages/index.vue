@@ -111,8 +111,8 @@ watch(randomExcludedCharacterIds, value => localStorage.setItem('character-sorte
         <div class="space-y-3">
           <p class="text-sm font-semibold">選擇要排序的作品</p>
           <SeriesCharacterSelector v-model="seriesSelection" v-model:excluded-ids="sorterExcludedCharacterIds" />
-          <UButton block color="gray" variant="ghost" size="sm" icon="i-heroicons-arrow-right" @click="syncToRandomRanking">
-            同步名單到隨機排名
+          <UButton block color="gray" variant="ghost" size="sm" icon="i-heroicons-arrow-left" @click="syncToSorter">
+            從隨機排名同步名單
           </UButton>
         </div>
 
@@ -147,8 +147,8 @@ watch(randomExcludedCharacterIds, value => localStorage.setItem('character-sorte
         <div class="space-y-3">
           <p class="text-sm font-semibold">選擇要加入排名的作品</p>
           <SeriesCharacterSelector v-model="randomSeriesSelection" v-model:excluded-ids="randomExcludedCharacterIds" />
-          <UButton block color="gray" variant="ghost" size="sm" icon="i-heroicons-arrow-left" @click="syncToSorter">
-            同步名單到角色二選一
+          <UButton block color="gray" variant="ghost" size="sm" icon="i-heroicons-arrow-right" @click="syncToRandomRanking">
+            從角色二選一同步名單
           </UButton>
         </div>
 
