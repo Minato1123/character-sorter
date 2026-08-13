@@ -2,6 +2,7 @@
 import type { Character } from '~/types/character'
 import { characters } from '~/utils/characters'
 import { generateTop10Image } from '~/utils/imageGenerator'
+import { getSeriesColor, getSeriesLabel, seriesLabelMap } from '~/utils/series'
 
 const route = useRoute()
 const selectedCharacters = ref<Character[]>([])
@@ -13,8 +14,13 @@ const downloadError = ref('')
 const selectedSeries = computed(() => {
   const queryValue = route.query.series
   const rawSeries = typeof queryValue === 'string' ? queryValue.split(',') : []
-  const validSeries = ['WindBreaker', 'Haikyu', 'MHA']
+  const validSeries = Object.keys(seriesLabelMap)
   return rawSeries.filter(series => validSeries.includes(series))
+})
+
+const selectedCharacterIds = computed(() => {
+  const queryValue = route.query.characters
+  return typeof queryValue === 'string' ? queryValue.split(',').filter(Boolean) : []
 })
 
 const currentCharacter = computed(() => selectedCharacters.value[currentIndex.value])
@@ -26,17 +32,6 @@ const sortedResults = computed(() =>
     .sort((a, b) => a.rank - b.rank)
 )
 
-const seriesLabelMap: Record<string, string> = {
-  WindBreaker: '防風少年',
-  Haikyu: '排球少年',
-  MHA: '我的英雄學院'
-}
-
-const seriesColorMap: Record<string, string> = {
-  WindBreaker: 'blue',
-  Haikyu: 'orange',
-  MHA: 'red'
-}
 
 function randomInt(max: number) {
   if (max <= 0) return 0
@@ -66,7 +61,10 @@ function shuffle(list: Character[]) {
 }
 
 function startGame() {
-  const candidates = characters.filter(character => selectedSeries.value.includes(character.series))
+  const candidates = characters.filter(character =>
+    selectedSeries.value.includes(character.series) &&
+    (selectedCharacterIds.value.length === 0 || selectedCharacterIds.value.includes(character.id))
+  )
   selectedCharacters.value = shuffle(candidates).slice(0, 10)
   currentIndex.value = 0
   rankings.value = {}
@@ -109,7 +107,10 @@ onMounted(() => {
     return
   }
 
-  if (characters.filter(character => selectedSeries.value.includes(character.series)).length < 10) {
+  if (characters.filter(character =>
+    selectedSeries.value.includes(character.series) &&
+    (selectedCharacterIds.value.length === 0 || selectedCharacterIds.value.includes(character.id))
+  ).length < 10) {
     navigateTo({ name: 'index' })
     return
   }
@@ -119,9 +120,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <UContainer class="min-h-screen py-10">
+  <UContainer class="min-h-screen max-w-none py-10">
     <template v-if="!isFinished">
       <div class="mx-auto mb-8 max-w-2xl text-center">
+        <div class="mb-5 text-left">
+          <UButton color="gray" variant="ghost" icon="i-heroicons-arrow-left" @click="navigateTo({ name: 'index' })">
+            返回首頁
+          </UButton>
+        </div>
         <p class="text-sm font-semibold text-violet-500">隨機排名</p>
         <h1 class="mt-2 text-3xl font-extrabold sm:text-4xl">這位角色該排第幾名？</h1>
         <p class="mt-3 text-gray-500 dark:text-gray-400">
@@ -150,8 +156,8 @@ onMounted(() => {
               :key="rank"
               :rank="rank"
               :character="rankings[rank]"
-              :series-label="rankings[rank] ? seriesLabelMap[rankings[rank].series] || rankings[rank].series : ''"
-              :series-color="rankings[rank] ? seriesColorMap[rankings[rank].series] || 'gray' : 'gray'"
+              :series-label="rankings[rank] ? getSeriesLabel(rankings[rank].series) : ''"
+              :series-color="rankings[rank] ? getSeriesColor(rankings[rank].series) : 'gray'"
               @select="selectRank(rank)"
             />
           </div>
@@ -167,10 +173,10 @@ onMounted(() => {
           <UBadge
             v-for="series in selectedSeries"
             :key="series"
-            :color="seriesColorMap[series] || 'gray'"
+            :color="getSeriesColor(series)"
             variant="subtle"
           >
-            {{ seriesLabelMap[series] || series }}
+            {{ getSeriesLabel(series) }}
           </UBadge>
         </div>
         <div class="mt-6 flex justify-center gap-3">

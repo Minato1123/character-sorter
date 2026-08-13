@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { characters } from '~/utils/characters'
 import { generateTop10Image } from '~/utils/imageGenerator'
+import { getSeriesColor, getSeriesLabel } from '~/utils/series'
 
 const { sortedList, startSorting, selectedSeries, comparisonCount, startTime, endTime } = useSorter()
 
@@ -69,25 +70,6 @@ onMounted(() => {
   }
 })
 
-// Helper functions for series labels (用於第 11 名之後的顯示)
-const seriesLabelMap: Record<string, string> = {
-  WindBreaker: '防風少年',
-  Haikyu: '排球少年',
-  MHA: '我的英雄學院'
-}
-
-const getSeriesLabel = (series: string) => {
-  return seriesLabelMap[series] || series
-}
-
-const getSeriesColor = (series: string) => {
-  switch (series) {
-    case 'WindBreaker': return 'blue'
-    case 'Haikyu': return 'orange'
-    case 'MHA': return 'red'
-    default: return 'gray'
-  }
-}
 </script>
 
 <template>
@@ -118,8 +100,8 @@ const getSeriesColor = (series: string) => {
       </p>
       
       <div class="flex justify-center gap-4">
-        <UButton icon="i-heroicons-arrow-path" color="gray" @click="restart">
-          重新開始
+        <UButton icon="i-heroicons-home" color="gray" @click="restart">
+          返回首頁
         </UButton>
         <UButton icon="i-heroicons-arrow-down-tray" @click="downloadScreenshot">
           下載截圖

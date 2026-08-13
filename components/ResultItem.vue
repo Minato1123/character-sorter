@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Character } from '~/types/character'
+import { getSeriesColor, getSeriesLabel } from '~/utils/series'
 
 const props = defineProps<{
   character: Character
@@ -15,23 +16,8 @@ const getRankColor = (index: number) => {
   return 'text-gray-600 dark:text-gray-300'
 }
 
-const seriesColor = computed(() => {
-  switch (props.character.series) {
-    case 'WindBreaker': return 'blue'
-    case 'Haikyu': return 'orange'
-    case 'MHA': return 'red'
-    default: return 'gray'
-  }
-})
-
-const seriesLabel = computed(() => {
-  switch (props.character.series) {
-    case 'WindBreaker': return '防風少年'
-    case 'Haikyu': return '排球少年'
-    case 'MHA': return '我的英雄學院'
-    default: return props.character.series
-  }
-})
+const seriesColor = computed(() => getSeriesColor(props.character.series))
+const seriesLabel = computed(() => getSeriesLabel(props.character.series))
 </script>
 
 <template>

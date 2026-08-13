@@ -1,53 +1,34 @@
 <script setup lang="ts">
 import { characters } from '~/utils/characters'
 import { useSorter } from '~/composables/useSorter'
+import { seriesLabelMap } from '~/utils/series'
 
 const { startSorting, setSelectedSeries } = useSorter()
 
-// 本地狀態管理系列選擇
-const seriesSelection = ref({
-  WindBreaker: true,
-  Haikyu: true,
-  MHA: true
-})
+const seriesOptions = Object.entries(seriesLabelMap).map(([value, label]) => ({ value, label }))
+const createSeriesSelection = () => Object.fromEntries(seriesOptions.map(({ value }) => [value, true])) as Record<string, boolean>
 
-const randomSeriesSelection = ref({
-  WindBreaker: true,
-  Haikyu: true,
-  MHA: true
-})
+// 本地狀態管理系列選擇
+const seriesSelection = ref(createSeriesSelection())
+const randomSeriesSelection = ref(createSeriesSelection())
+const sorterExcludedCharacterIds = ref<string[]>([])
+const randomExcludedCharacterIds = ref<string[]>([])
 
 // 計算屬性
-const hasSelection = computed(() => 
-  seriesSelection.value.WindBreaker || 
-  seriesSelection.value.Haikyu || 
-  seriesSelection.value.MHA
-)
+const hasSelection = computed(() => Object.values(seriesSelection.value).some(Boolean))
 
-const selectedSeriesList = computed(() => {
-  const selected: string[] = []
-  if (seriesSelection.value.WindBreaker) selected.push('WindBreaker')
-  if (seriesSelection.value.Haikyu) selected.push('Haikyu')
-  if (seriesSelection.value.MHA) selected.push('MHA')
-  return selected
-})
+const selectedSeriesList = computed(() => Object.keys(seriesSelection.value).filter(series => seriesSelection.value[series]))
 
 const filteredCharacters = computed(() => 
-  characters.filter(c => selectedSeriesList.value.includes(c.series))
+  characters.filter(c => selectedSeriesList.value.includes(c.series) && !sorterExcludedCharacterIds.value.includes(c.id))
 )
 
 const selectedCount = computed(() => selectedSeriesList.value.length)
 
-const randomSelectedSeriesList = computed(() => {
-  const selected: string[] = []
-  if (randomSeriesSelection.value.WindBreaker) selected.push('WindBreaker')
-  if (randomSeriesSelection.value.Haikyu) selected.push('Haikyu')
-  if (randomSeriesSelection.value.MHA) selected.push('MHA')
-  return selected
-})
+const randomSelectedSeriesList = computed(() => Object.keys(randomSeriesSelection.value).filter(series => randomSeriesSelection.value[series]))
 
 const randomCharacterCount = computed(() =>
-  characters.filter(c => randomSelectedSeriesList.value.includes(c.series)).length
+  characters.filter(c => randomSelectedSeriesList.value.includes(c.series) && !randomExcludedCharacterIds.value.includes(c.id)).length
 )
 
 const canStartRandomRanking = computed(() => randomCharacterCount.value >= 10)
@@ -61,9 +42,44 @@ function handleStart() {
 function handleRandomRankingStart() {
   navigateTo({
     name: 'random-ranking',
-    query: { series: randomSelectedSeriesList.value.join(',') }
+    query: {
+      series: randomSelectedSeriesList.value.join(','),
+      characters: characters
+        .filter(c => randomSelectedSeriesList.value.includes(c.series) && !randomExcludedCharacterIds.value.includes(c.id))
+        .map(c => c.id)
+        .join(',')
+    }
   })
 }
+
+function loadExcludedCharacters(key: string, target: Ref<string[]>) {
+  const saved = localStorage.getItem(key)
+  if (!saved) return
+  try {
+    const parsed = JSON.parse(saved)
+    if (Array.isArray(parsed)) target.value = parsed.filter(id => typeof id === 'string')
+  } catch {
+    localStorage.removeItem(key)
+  }
+}
+
+function syncToRandomRanking() {
+  randomSeriesSelection.value = { ...seriesSelection.value }
+  randomExcludedCharacterIds.value = [...sorterExcludedCharacterIds.value]
+}
+
+function syncToSorter() {
+  seriesSelection.value = { ...randomSeriesSelection.value }
+  sorterExcludedCharacterIds.value = [...randomExcludedCharacterIds.value]
+}
+
+onMounted(() => {
+  loadExcludedCharacters('character-sorter-sorter-excluded-characters', sorterExcludedCharacterIds)
+  loadExcludedCharacters('character-sorter-random-excluded-characters', randomExcludedCharacterIds)
+})
+
+watch(sorterExcludedCharacterIds, value => localStorage.setItem('character-sorter-sorter-excluded-characters', JSON.stringify(value)), { deep: true })
+watch(randomExcludedCharacterIds, value => localStorage.setItem('character-sorter-random-excluded-characters', JSON.stringify(value)), { deep: true })
 </script>
 
 <template>
@@ -79,7 +95,7 @@ function handleRandomRankingStart() {
     </div>
 
     <div class="mx-auto mt-12 grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <UCard class="flex flex-col">
+      <UCard class="flex h-full flex-col" :ui="{ body: { base: 'flex flex-1 flex-col' } }">
         <template #header>
           <div class="flex items-start gap-4">
             <div class="rounded-xl bg-primary-100 p-3 text-primary-600 dark:bg-primary-950 dark:text-primary-300">
@@ -94,9 +110,10 @@ function handleRandomRankingStart() {
 
         <div class="space-y-3">
           <p class="text-sm font-semibold">選擇要排序的作品</p>
-          <UCheckbox v-model="seriesSelection.WindBreaker" label="防風少年" color="blue" />
-          <UCheckbox v-model="seriesSelection.Haikyu" label="排球少年" color="orange" />
-          <UCheckbox v-model="seriesSelection.MHA" label="我的英雄學院" color="red" />
+          <SeriesCharacterSelector v-model="seriesSelection" v-model:excluded-ids="sorterExcludedCharacterIds" />
+          <UButton block color="gray" variant="ghost" size="sm" icon="i-heroicons-arrow-right" @click="syncToRandomRanking">
+            同步名單到隨機排名
+          </UButton>
         </div>
 
         <template #footer>
@@ -111,7 +128,7 @@ function handleRandomRankingStart() {
           </div>
         </template>
       </UCard>
-      <UCard class="flex flex-col">
+      <UCard class="flex h-full flex-col" :ui="{ body: { base: 'flex flex-1 flex-col' } }">
         <template #header>
           <div class="flex items-start gap-4">
             <div class="rounded-xl bg-violet-100 p-3 text-violet-600 dark:bg-violet-950 dark:text-violet-300">
@@ -120,7 +137,7 @@ function handleRandomRankingStart() {
             <div>
               <div class="flex items-center gap-2">
                 <h2 class="text-xl font-bold">隨機排名</h2>
-                <UBadge color="violet" variant="subtle">準備中</UBadge>
+                <UBadge color="violet" variant="subtle">測試中</UBadge>
               </div>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">隨機抽 10 位角色，在無法得知未來會抽到哪些角色的情況下進行排名。</p>
             </div>
@@ -129,9 +146,10 @@ function handleRandomRankingStart() {
 
         <div class="space-y-3">
           <p class="text-sm font-semibold">選擇要加入排名的作品</p>
-          <UCheckbox v-model="randomSeriesSelection.WindBreaker" label="防風少年" color="blue" />
-          <UCheckbox v-model="randomSeriesSelection.Haikyu" label="排球少年" color="orange" />
-          <UCheckbox v-model="randomSeriesSelection.MHA" label="我的英雄學院" color="red" />
+          <SeriesCharacterSelector v-model="randomSeriesSelection" v-model:excluded-ids="randomExcludedCharacterIds" />
+          <UButton block color="gray" variant="ghost" size="sm" icon="i-heroicons-arrow-left" @click="syncToSorter">
+            同步名單到角色二選一
+          </UButton>
         </div>
 
         <template #footer>
@@ -156,17 +174,14 @@ function handleRandomRankingStart() {
           </div>
         </template>
       </UCard>
-      <UCard class="flex flex-col">
+      <UCard class="flex h-full flex-col" :ui="{ body: { base: 'flex flex-1 flex-col' } }">
         <template #header>
           <div class="flex items-start gap-4">
             <div class="rounded-xl bg-amber-100 p-3 text-amber-600 dark:bg-amber-950 dark:text-amber-300">
               <UIcon name="i-heroicons-table-cells" class="h-7 w-7" />
             </div>
             <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-xl font-bold">表格產生器</h2>
-                <UBadge color="amber" variant="subtle">準備中</UBadge>
-              </div>
+              <h2 class="text-xl font-bold">表格產生器</h2>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">快速建立好看又方便分享的表格。</p>
             </div>
           </div>
@@ -178,8 +193,8 @@ function handleRandomRankingStart() {
         </div>
 
         <template #footer>
-          <UButton block size="lg" color="gray" icon="i-heroicons-table-cells" disabled>
-            即將推出
+          <UButton block size="lg" color="amber" icon="i-heroicons-table-cells" @click="navigateTo({ name: 'table-generator' })">
+            開始建立表格
           </UButton>
         </template>
       </UCard>

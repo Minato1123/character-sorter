@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   app: {
     baseURL: '/character-sorter/',
     head: {
-      title: '動漫角色二選一'
+      title: '動漫小工具箱'
     }
   },
 })

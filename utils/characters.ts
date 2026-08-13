@@ -69,4 +69,14 @@ export const characters: Character[] = [
   // { id: 'mha-25', name: '塚內直正', series: 'MHA', image: 'images/我的英雄學院/塚內直正.jpg' },
   // { id: 'mha-26', name: '轟炎司', series: 'MHA', image: 'images/我的英雄學院/轟炎司.jpg' },
   { id: 'mha-27', name: '壞理', series: 'MHA', image: 'images/我的英雄學院/壞理.jpg' },
+  
+  // mp100
+  { id: 'mp100-1', name: '影山茂夫', series: 'MP100', image: 'images/路人超能100/影山茂夫.jpg' },
+  { id: 'mp100-2', name: '靈幻新隆', series: 'MP100', image: 'images/路人超能100/靈幻新隆.jpg' },
+
+  // bb
+  { id: 'bb-1', name: '千早瞬平', series: 'BB', image: 'images/失憶投捕/千早瞬平.jpg' },
+  { id: 'bb-2', name: '要圭', series: 'BB', image: 'images/失憶投捕/要圭.jpg' },
+  { id: 'bb-3', name: '智將要圭', series: 'BB', image: 'images/失憶投捕/智將要圭.jpg' },
+
 ]

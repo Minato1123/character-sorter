@@ -40,6 +40,11 @@ const handleSelect = async (winner: any) => {
 
 <template>
   <UContainer class="min-h-screen flex flex-col py-10">
+    <div class="mb-4">
+      <UButton color="gray" variant="ghost" icon="i-heroicons-arrow-left" @click="navigateTo({ name: 'index' })">
+        返回首頁
+      </UButton>
+    </div>
     <div class="mb-8">
       <!-- 剩餘次數（新增） -->
       <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-2">
