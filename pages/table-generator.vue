@@ -15,20 +15,41 @@ const annualCategories = [
   '花最多錢', '衝著入坑', '愛最久的', '沒遇過推', '漸忘容顏', '自填項目',
 ]
 const annualRanks = ['冠軍', '亞軍', '季軍', '殿軍']
+const itsMeCategories = ['你推']
+const itsMeUploadLabels = {
+  self: '你',
+  color: '你喜歡的顏色',
+  animal: '你喜歡的動物',
+  food: '你喜歡的食物',
+  dislikedFood: '你討厭的食物',
+  song: '你喜歡的歌曲',
+  album: '你喜歡的專輯',
+  cp: '你喜歡的 CP',
+  cb: '你喜歡的 CB',
+  style: '你喜歡的風格',
+  place: '你想去的地方',
+  group: '你喜歡的團體',
+  anime: '你喜歡的動漫',
+  game: '你喜歡的遊戲'
+} as const
 
 const tableTypeOptions = [
   { label: '經典角色喜好表', value: 'classic' },
-  { label: '我推的年度回顧', value: 'annual' }
+  { label: '我推的年度回顧', value: 'annual' },
+  { label: "It's me", value: 'its-me' }
 ]
 const selectedTableType = ref('classic')
 const isAnnualTable = computed(() => selectedTableType.value === 'annual')
+const isItsMeTable = computed(() => selectedTableType.value === 'its-me')
 const tableTitle = ref(tableTypeOptions[0].label)
 const tableAuthor = ref('')
 const annualMessage = ref('')
 const annualCustomCategory = ref('')
 const classicSelections = ref<Record<number, Character | undefined>>({})
 const annualSelections = ref<Record<number, Character | undefined>>({})
-const selections = computed(() => isAnnualTable.value ? annualSelections.value : classicSelections.value)
+const itsMeSelections = ref<Record<number, Character | undefined>>({})
+const itsMeImages = ref<Partial<Record<keyof typeof itsMeUploadLabels, string>>>({})
+const selections = computed(() => isAnnualTable.value ? annualSelections.value : isItsMeTable.value ? itsMeSelections.value : classicSelections.value)
 const customCharacters = ref<Character[]>([])
 const activeCell = ref<number | null>(null)
 const searchTerm = ref('')
@@ -43,7 +64,7 @@ const isExporting = ref(false)
 const tableRef = ref<HTMLElement | null>(null)
 const customImageInput = ref<HTMLInputElement | null>(null)
 
-const currentCategories = computed(() => isAnnualTable.value ? annualCategories : categories)
+const currentCategories = computed(() => isAnnualTable.value ? annualCategories : isItsMeTable.value ? itsMeCategories : categories)
 const activeCategoryLabel = computed(() => {
   if (isAnnualTable.value && activeCell.value !== null && activeCell.value >= 10) return '年度西批'
   if (isAnnualTable.value && activeCell.value === 9) return annualCustomCategory.value.trim() || '自填項目'
@@ -66,6 +87,11 @@ const {
   imageError: annualPairingSecondError,
   handleImageError: handleAnnualPairingSecondError
 } = useImageFallback(() => selections.value[11]?.image || '')
+const {
+  currentSrc: itsMeFavoriteSrc,
+  imageError: itsMeFavoriteError,
+  handleImageError: handleItsMeFavoriteError
+} = useImageFallback(() => itsMeSelections.value[0]?.image || '')
 
 const filteredCharacters = computed(() => {
   const term = searchTerm.value.trim().toLowerCase()
@@ -123,6 +149,12 @@ function handleAnnualMessageInput(event: Event) {
       textarea.value = previousValue
     }
   })
+}
+
+function setItsMeImage(key: keyof typeof itsMeUploadLabels, file: File) {
+  const previousUrl = itsMeImages.value[key]
+  if (previousUrl?.startsWith('blob:')) URL.revokeObjectURL(previousUrl)
+  itsMeImages.value[key] = URL.createObjectURL(file)
 }
 
 function clearCell() {
@@ -310,6 +342,37 @@ async function exportTable() {
                   <textarea :value="annualMessage" rows="4" class="h-[132px] w-full resize-none overflow-hidden rounded-2xl border-2 border-gray-300 p-4 text-base leading-6 text-gray-700 outline-none placeholder:text-gray-400 focus:border-primary-500" placeholder="寫下今年想留下的話吧。" @input="handleAnnualMessageInput" />
                 </div>
               </section>
+            </div>
+          </template>
+          <template v-else-if="isItsMeTable">
+            <div class="mb-8 text-center">
+              <h2 class="inline-block bg-black px-6 py-3 text-4xl font-black italic text-white">It's me</h2>
+              <p v-if="tableAuthor.trim()" class="mt-2 text-sm font-medium text-gray-500">填表人：{{ tableAuthor.trim() }}</p>
+            </div>
+            <div class="mx-auto grid w-[724px] grid-cols-8 auto-rows-[80px] gap-3">
+              <div class="col-start-2 row-start-1"><ItsMeUploadCell :label="itsMeUploadLabels.color" :image="itsMeImages.color" @upload="setItsMeImage('color', $event)" /></div>
+              <div class="col-start-3 row-start-1"><ItsMeUploadCell :label="itsMeUploadLabels.animal" :image="itsMeImages.animal" @upload="setItsMeImage('animal', $event)" /></div>
+              <div class="col-start-5 col-end-7 row-start-1 row-end-3">
+                <button type="button" class="group flex h-full w-full flex-col overflow-hidden border-2 border-gray-700 bg-white" @click="openPicker(0)">
+                  <div class="flex min-h-0 flex-1 items-center justify-center bg-gray-50">
+                    <img v-if="selections[0] && !itsMeFavoriteError" :src="itsMeFavoriteSrc" :alt="selections[0].name" class="h-full w-full object-cover" @error="handleItsMeFavoriteError">
+                    <span v-else-if="selections[0]" class="text-4xl font-bold text-gray-400">{{ selections[0].name.charAt(0) }}</span>
+                    <span v-else class="text-3xl font-bold text-gray-800 group-hover:text-primary-500">你推</span>
+                  </div>
+                </button>
+              </div>
+              <div class="col-start-1 row-start-2"><ItsMeUploadCell :label="itsMeUploadLabels.food" :image="itsMeImages.food" @upload="setItsMeImage('food', $event)" /></div>
+              <div class="col-start-2 col-end-4 row-start-2 row-end-4"><ItsMeUploadCell :label="itsMeUploadLabels.self" :image="itsMeImages.self" @upload="setItsMeImage('self', $event)" /></div>
+              <div class="col-start-4 row-start-2"><ItsMeUploadCell :label="itsMeUploadLabels.song" :image="itsMeImages.song" @upload="setItsMeImage('song', $event)" /></div>
+              <div class="col-start-7 row-start-2"><ItsMeUploadCell :label="itsMeUploadLabels.cp" :image="itsMeImages.cp" @upload="setItsMeImage('cp', $event)" /></div>
+              <div class="col-start-1 row-start-3"><ItsMeUploadCell :label="itsMeUploadLabels.dislikedFood" :image="itsMeImages.dislikedFood" @upload="setItsMeImage('dislikedFood', $event)" /></div>
+              <div class="col-start-4 row-start-3"><ItsMeUploadCell :label="itsMeUploadLabels.album" :image="itsMeImages.album" @upload="setItsMeImage('album', $event)" /></div>
+              <div class="col-start-5 col-end-7 row-start-3 row-end-5"><ItsMeUploadCell :label="itsMeUploadLabels.group" :image="itsMeImages.group" @upload="setItsMeImage('group', $event)" /></div>
+              <div class="col-start-7 row-start-3"><ItsMeUploadCell :label="itsMeUploadLabels.cb" :image="itsMeImages.cb" @upload="setItsMeImage('cb', $event)" /></div>
+              <div class="col-start-2 row-start-4"><ItsMeUploadCell :label="itsMeUploadLabels.style" :image="itsMeImages.style" @upload="setItsMeImage('style', $event)" /></div>
+              <div class="col-start-3 col-end-5 row-start-4 row-end-6"><ItsMeUploadCell :label="itsMeUploadLabels.place" :image="itsMeImages.place" @upload="setItsMeImage('place', $event)" /></div>
+              <div class="col-start-5 row-start-5"><ItsMeUploadCell :label="itsMeUploadLabels.anime" :image="itsMeImages.anime" @upload="setItsMeImage('anime', $event)" /></div>
+              <div class="col-start-4 row-start-6"><ItsMeUploadCell :label="itsMeUploadLabels.game" :image="itsMeImages.game" @upload="setItsMeImage('game', $event)" /></div>
             </div>
           </template>
           <template v-else>
