@@ -86,9 +86,12 @@ watch(randomExcludedCharacterIds, value => localStorage.setItem('character-sorte
   <UContainer class="min-h-screen py-12 sm:py-20">
     <div class="mx-auto max-w-3xl text-center">
       <p class="mb-3 text-sm font-semibold tracking-widest text-primary-500">ANIME TOOLS</p>
-      <h1 class="text-4xl font-extrabold text-gray-900 sm:text-6xl dark:text-white">
-        動漫小工具箱
-      </h1>
+      <div class="relative inline-block">
+        <h1 class="text-4xl font-extrabold text-gray-900 sm:text-6xl dark:text-white">
+          動漫小工具箱
+        </h1>
+        <span class="absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-xs font-medium text-gray-300 dark:text-gray-600">v1.1.0</span>
+      </div>
       <p class="mx-auto mt-5 max-w-xl text-lg text-gray-500 dark:text-gray-400">
         選擇你想使用的工具，整理喜愛的角色與作品。
       </p>
