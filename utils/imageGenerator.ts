@@ -1,4 +1,5 @@
 import type { Character } from '~/types/character'
+import { getSeriesLabel } from '~/utils/series'
 
 /**
  * 載入圖片（支援跨域和 fallback）
@@ -131,14 +132,18 @@ function drawSeriesBadge(
   fontSize: number = 24,
   align: 'left' | 'center' = 'center'
 ): number {
-  const labels: Record<string, { text: string; bg: string; color: string }> = {
-    WindBreaker: { text: '防風少年', bg: '#DBEAFE', color: '#1E40AF' },
-    Haikyu: { text: '排球少年', bg: '#FED7AA', color: '#C2410C' },
-    MHA: { text: '我的英雄學院', bg: '#FECACA', color: '#B91C1C' }
+  const colors: Record<string, { bg: string; color: string }> = {
+    WindBreaker: { bg: '#DBEAFE', color: '#1E40AF' },
+    Haikyu: { bg: '#FED7AA', color: '#C2410C' },
+    MHA: { bg: '#FECACA', color: '#B91C1C' },
+    MP100: { bg: '#E5E7EB', color: '#374151' },
+    BB: { bg: '#E0F2FE', color: '#0369A1' }
   }
   
-  const badge = labels[series]
-  if (!badge) return 0
+  const badge = {
+    text: getSeriesLabel(series),
+    ...(colors[series] || { bg: '#F3F4F6', color: '#374151' })
+  }
   
   // 設定字體以測量文字寬度（使用動態 fontSize）
   ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
