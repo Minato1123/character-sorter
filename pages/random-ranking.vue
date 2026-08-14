@@ -195,11 +195,11 @@ onMounted(() => {
             {{ getSeriesLabel(series) }}
           </UBadge>
         </div>
-        <div class="mt-6 flex justify-center gap-3">
-          <UButton color="gray" icon="i-heroicons-home" @click="navigateTo({ name: 'index' })">返回首頁</UButton>
-          <UButton color="violet" icon="i-heroicons-arrow-path" @click="startGame">再玩一次</UButton>
-          <USelect v-model="resultOrder" :options="resultOrderOptions" class="w-44" />
-          <UButton icon="i-heroicons-arrow-down-tray" :loading="isGeneratingImage" @click="downloadResultImage">
+        <div class="mt-6 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-center">
+          <UButton class="w-full justify-center sm:w-auto" color="gray" icon="i-heroicons-home" @click="navigateTo({ name: 'index' })">返回首頁</UButton>
+          <UButton class="w-full justify-center sm:w-auto" color="violet" icon="i-heroicons-arrow-path" @click="startGame">再玩一次</UButton>
+          <USelect v-model="resultOrder" :options="resultOrderOptions" class="w-full sm:w-44" />
+          <UButton class="w-full justify-center sm:w-auto" icon="i-heroicons-arrow-down-tray" :loading="isGeneratingImage" @click="downloadResultImage">
             下載圖片
           </UButton>
         </div>
