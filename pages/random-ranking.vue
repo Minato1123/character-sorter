@@ -228,7 +228,7 @@ onMounted(() => {
             </span>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-flow-col grid-rows-5 gap-4">
           <ResultItem
             v-for="result in displayResults"
             :key="result.character.id"
