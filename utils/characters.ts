@@ -40,6 +40,7 @@ export const characters: Character[] = [
   { id: 'hq-26', name: '昼神幸郎', series: 'Haikyu', image: 'images/排球少年/昼神幸郎.jpg' },
   { id: 'hq-27', name: '瀨見英太', series: 'Haikyu', image: 'images/排球少年/瀨見英太.jpg'},
   { id: 'hq-28', name: '五色工', series: 'Haikyu', image: 'images/排球少年/五色工.jpg'},
+  { id: 'hq-29', name: '二口堅治', series: 'Haikyu', image: 'images/排球少年/二口堅治.jpg'},
 
   // MHA
   { id: 'mha-1', name: '綠谷出久', series: 'MHA', image: 'images/我的英雄學院/綠谷出久.jpg' },
@@ -66,17 +67,40 @@ export const characters: Character[] = [
   { id: 'mha-22', name: '白雲朧（黑霧）', series: 'MHA', image: 'images/我的英雄學院/白雲朧.jpg' },
   { id: 'mha-23', name: '迫壓紘（壓縮先生）', series: 'MHA', image: 'images/我的英雄學院/迫壓紘.jpg' },
   { id: 'mha-24', name: '治崎廻', series: 'MHA', image: 'images/我的英雄學院/治崎廻.jpg' },
-  // { id: 'mha-25', name: '塚內直正', series: 'MHA', image: 'images/我的英雄學院/塚內直正.jpg' },
-  // { id: 'mha-26', name: '轟炎司', series: 'MHA', image: 'images/我的英雄學院/轟炎司.jpg' },
+  { id: 'mha-25', name: '塚內直正', series: 'MHA', image: 'images/我的英雄學院/塚內直正.jpg' },
+  { id: 'mha-26', name: '轟炎司', series: 'MHA', image: 'images/我的英雄學院/轟炎司.jpg' },
   { id: 'mha-27', name: '壞理', series: 'MHA', image: 'images/我的英雄學院/壞理.jpg' },
+  { id: 'mha-28', name: '歐爾麥特', series: 'MHA', image: 'images/我的英雄學院/歐爾麥特.jpg' },
   
   // mp100
   { id: 'mp100-1', name: '影山茂夫', series: 'MP100', image: 'images/路人超能100/影山茂夫.jpg' },
   { id: 'mp100-2', name: '靈幻新隆', series: 'MP100', image: 'images/路人超能100/靈幻新隆.jpg' },
+  { id: 'mp100-3', name: '小酒窩', series: 'MP100', image: 'images/路人超能100/小酒窩.jpg' },
+  { id: 'mp100-4', name: '影山律', series: 'MP100', image: 'images/路人超能100/影山律.jpg' },
+  { id: 'mp100-5', name: '芹澤克也', series: 'MP100', image: 'images/路人超能100/芹澤克也.jpg' },
+  { id: 'mp100-6', name: '花澤輝氣', series: 'MP100', image: 'images/路人超能100/花澤輝氣.jpg' },
+  { id: 'mp100-7', name: '鈴木將', series: 'MP100', image: 'images/路人超能100/鈴木將.jpg' },
+  { id: 'mp100-8', name: '最上啟示', series: 'MP100', image: 'images/路人超能100/最上啟示.jpg' },
+  { id: 'mp100-9', name: '暗田留', series: 'MP100', image: 'images/路人超能100/暗田留.jpg' },
+  { id: 'mp100-10', name: '島崎亮', series: 'MP100', image: 'images/路人超能100/島崎亮.jpg' },
+  { id: 'mp100-11', name: '高嶺蕾', series: 'MP100', image: 'images/路人超能100/高嶺蕾.jpg' },
+  { id: 'mp100-12', name: '米里一', series: 'MP100', image: 'images/路人超能100/米里一.jpg' },
+  { id: 'mp100-13', name: '深見繪美', series: 'MP100', image: 'images/路人超能100/深見繪美.jpg' },
+  { id: 'mp100-14', name: '鄉田武藏', series: 'MP100', image: 'images/路人超能100/鄉田武藏.jpg' },
+  { id: 'mp100-15', name: '神室真司', series: 'MP100', image: 'images/路人超能100/神室真司.jpg' },
+  { id: 'mp100-16', name: '德川光', series: 'MP100', image: 'images/路人超能100/德川光.jpg' },
+  { id: 'mp100-17', name: '誇山惠', series: 'MP100', image: 'images/路人超能100/誇山惠.jpg' },
+  { id: 'mp100-18', name: '櫻威遊介', series: 'MP100', image: 'images/路人超能100/櫻威遊介.jpg' },
+  { id: 'mp100-19', name: '魔津尾純愛', series: 'MP100', image: 'images/路人超能100/魔津尾純愛.jpg' },
+  { id: 'mp100-20', name: '森羅萬象丸', series: 'MP100', image: 'images/路人超能100/森羅萬象丸.jpg' },
+  { id: 'mp100-21', name: '淺桐美乃莉', series: 'MP100', image: 'images/路人超能100/淺桐美乃莉.jpg' },
+  { id: 'mp100-22', name: '淨堂麒麟', series: 'MP100', image: 'images/路人超能100/淨堂麒麟.jpg' },
 
   // bb
   { id: 'bb-1', name: '千早瞬平', series: 'BB', image: 'images/失憶投捕/千早瞬平.jpg' },
   { id: 'bb-2', name: '要圭', series: 'BB', image: 'images/失憶投捕/要圭.jpg' },
   { id: 'bb-3', name: '智將要圭', series: 'BB', image: 'images/失憶投捕/智將要圭.jpg' },
+  { id: 'bb-4', name: '清峰葉流火', series: 'BB', image: 'images/失憶投捕/清峰葉流火.jpg' },
+  { id: 'bb-5', name: '藤堂葵', series: 'BB', image: 'images/失憶投捕/藤堂葵.jpg' },
 
 ]
