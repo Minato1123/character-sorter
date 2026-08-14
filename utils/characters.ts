@@ -103,4 +103,23 @@ export const characters: Character[] = [
   { id: 'bb-4', name: '清峰葉流火', series: 'BB', image: 'images/失憶投捕/清峰葉流火.jpg' },
   { id: 'bb-5', name: '藤堂葵', series: 'BB', image: 'images/失憶投捕/藤堂葵.jpg' },
 
+  // kny
+  { id: 'kny-1', name: '竈門炭治郎', series: 'KNY', image: 'images/鬼滅之刃/竈門炭治郎.jpg' },
+  { id: 'kny-2', name: '竈門禰豆子', series: 'KNY', image: 'images/鬼滅之刃/竈門禰豆子.jpg' },
+  { id: 'kny-3', name: '我妻善逸', series: 'KNY', image: 'images/鬼滅之刃/我妻善逸.jpg' },
+  { id: 'kny-4', name: '嘴平伊之助', series: 'KNY', image: 'images/鬼滅之刃/嘴平伊之助.jpg' },
+  { id: 'kny-5', name: '煉獄杏壽郎', series: 'KNY', image: 'images/鬼滅之刃/煉獄杏壽郎.jpg' },
+  { id: 'kny-6', name: '時透無一郎', series: 'KNY', image: 'images/鬼滅之刃/時透無一郎.jpg' },
+  { id: 'kny-7', name: '甘露寺蜜璃', series: 'KNY', image: 'images/鬼滅之刃/甘露寺蜜璃.jpg' },
+  { id: 'kny-8', name: '伊黑小芭內', series: 'KNY', image: 'images/鬼滅之刃/伊黑小芭內.jpg' },
+  { id: 'kny-9', name: '不死川實彌', series: 'KNY', image: 'images/鬼滅之刃/不死川實彌.jpg' },
+  { id: 'kny-10', name: '悲鳴嶼行冥', series: 'KNY', image: 'images/鬼滅之刃/悲鳴嶼行冥.jpg' },
+  { id: 'kny-11', name: '不死川玄彌', series: 'KNY', image: 'images/鬼滅之刃/不死川玄彌.jpg' },
+  { id: 'kny-12', name: '富岡義勇', series: 'KNY', image: 'images/鬼滅之刃/富岡義勇.jpg' },
+  { id: 'kny-13', name: '宇髄天元', series: 'KNY', image: 'images/鬼滅之刃/宇髄天元.jpg' },
+  { id: 'kny-14', name: '鬼舞辻無慘', series: 'KNY', image: 'images/鬼滅之刃/鬼舞辻無慘.jpg' },
+  { id: 'kny-15', name: '猗窩座（狛治）', series: 'KNY', image: 'images/鬼滅之刃/猗窩座.jpg' },
+  { id: 'kny-16', name: '獪岳', series: 'KNY', image: 'images/鬼滅之刃/獪岳.jpg' },
+
+
 ]
