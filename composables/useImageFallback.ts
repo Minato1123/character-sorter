@@ -1,9 +1,11 @@
 // Composable to handle image loading failures and try different extensions
 export const useImageFallback = (getSource: () => string) => {
   const extensions = ['.jpg', '.jpeg', '.webp', '.png']
+  const appBaseURL = useRuntimeConfig().app.baseURL
+  const baseURL = appBaseURL.endsWith('/') ? appBaseURL : `${appBaseURL}/`
   const currentIndex = ref(0)
   const imageError = ref(false)
-  const normalizeSource = (src: string) => src.startsWith('images/') ? `/${src}` : src
+  const normalizeSource = (src: string) => src.startsWith('images/') ? `${baseURL}${src}` : src
   const currentSrc = ref(normalizeSource(getSource()))
   
   // Extract the base path without extension

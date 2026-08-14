@@ -2,8 +2,10 @@
 import { characters } from '~/utils/characters'
 import { useSorter } from '~/composables/useSorter'
 import { seriesLabelMap } from '~/utils/series'
+import packageJson from '../package.json'
 
 const { startSorting, setSelectedSeries } = useSorter()
+const appVersion = packageJson.version
 
 const seriesOptions = Object.entries(seriesLabelMap).map(([value, label]) => ({ value, label }))
 const createSeriesSelection = () => Object.fromEntries(seriesOptions.map(({ value }) => [value, true])) as Record<string, boolean>
@@ -87,10 +89,12 @@ watch(randomExcludedCharacterIds, value => localStorage.setItem('character-sorte
     <div class="mx-auto max-w-3xl text-center">
       <p class="mb-3 text-sm font-semibold tracking-widest text-primary-500">ANIME TOOLS</p>
       <div class="relative inline-block">
-        <h1 class="text-4xl font-extrabold text-gray-900 sm:text-6xl dark:text-white">
-          動漫小工具箱
-        </h1>
-        <span class="absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap text-xs font-medium text-gray-300 dark:text-gray-600">v1.1.0</span>
+        <div>
+          <h1 class="text-4xl font-extrabold text-gray-900 sm:text-6xl dark:text-white">
+            動漫小工具箱
+            <span class="text-xs font-medium text-gray-300 dark:text-gray-600">v{{ appVersion }}</span>
+          </h1>
+        </div>
       </div>
       <p class="mx-auto mt-5 max-w-xl text-lg text-gray-500 dark:text-gray-400">
         選擇你想使用的工具，整理喜愛的角色與作品。
@@ -185,14 +189,14 @@ watch(randomExcludedCharacterIds, value => localStorage.setItem('character-sorte
             </div>
             <div>
               <h2 class="text-xl font-bold">表格產生器</h2>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">快速建立好看又方便分享的表格。</p>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">建立角色喜好表與我推年度回顧，下載圖片分享。</p>
             </div>
           </div>
         </template>
 
         <div class="flex flex-1 flex-col justify-center py-5 text-center text-gray-500 dark:text-gray-400">
           <UIcon name="i-heroicons-sparkles" class="mx-auto mb-3 h-10 w-10 text-amber-500" />
-          <p>表格產生功能正在製作中，敬請期待！</p>
+          <p>選擇角色、填寫內容，完成你的專屬表格。</p>
         </div>
 
         <template #footer>
