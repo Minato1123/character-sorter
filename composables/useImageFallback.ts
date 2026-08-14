@@ -3,13 +3,14 @@ export const useImageFallback = (getSource: () => string) => {
   const extensions = ['.jpg', '.jpeg', '.webp', '.png']
   const currentIndex = ref(0)
   const imageError = ref(false)
-  const currentSrc = ref(getSource())
+  const normalizeSource = (src: string) => src.startsWith('images/') ? `/${src}` : src
+  const currentSrc = ref(normalizeSource(getSource()))
   
   // Extract the base path without extension
   const getBasePath = (src: string) => src.replace(/\.(jpg|jpeg|webp|png)$/i, '')
 
   const handleImageError = () => {
-    const basePath = getBasePath(getSource())
+    const basePath = getBasePath(normalizeSource(getSource()))
     // If we haven't tried all extensions yet
     if (currentIndex.value < extensions.length) {
       // Construct new path with next extension
@@ -37,7 +38,7 @@ export const useImageFallback = (getSource: () => string) => {
 
   // Watch for source changes (when props change)
   watch(getSource, (newSrc) => {
-    currentSrc.value = newSrc
+    currentSrc.value = normalizeSource(newSrc)
     currentIndex.value = 0
     imageError.value = false
   })

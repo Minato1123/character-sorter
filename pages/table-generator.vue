@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import html2canvas from 'html2canvas'
+import { snapdom } from '@zumer/snapdom'
 import type { Character } from '~/types/character'
 import { characters } from '~/utils/characters'
 import { getSeriesLabel } from '~/utils/series'
@@ -10,7 +10,21 @@ const categories = [
   '意難平', '心理陰影', '一生之敵', '無法理解', '也就是臉好看'
 ]
 
-const tableTitle = ref('我的動漫角色喜好表')
+const annualCategories = [
+  '綜合排名冠軍', '綜合排名亞軍', '綜合排名季軍', '綜合排名殿軍',
+  '花最多錢', '衝著入坑', '愛最久的', '沒遇過推', '漸忘容顏', '自填項目',
+]
+const annualRanks = ['冠軍', '亞軍', '季軍', '殿軍']
+
+const tableTypeOptions = [
+  { label: '經典角色喜好表', value: 'classic' },
+  { label: '我推的年度回顧', value: 'annual' }
+]
+const selectedTableType = ref('classic')
+const tableTitle = ref(tableTypeOptions[0].label)
+const tableAuthor = ref('')
+const annualMessage = ref('')
+const annualCustomCategory = ref('')
 const selections = ref<Record<number, Character | undefined>>({})
 const customCharacters = ref<Character[]>([])
 const activeCell = ref<number | null>(null)
@@ -26,16 +40,37 @@ const isExporting = ref(false)
 const tableRef = ref<HTMLElement | null>(null)
 const customImageInput = ref<HTMLInputElement | null>(null)
 
-const tableTypeOptions = [
-  { label: '經典角色喜好表（5 × 3）', value: 'classic' }
-]
-const selectedTableType = ref('classic')
+const isAnnualTable = computed(() => selectedTableType.value === 'annual')
+const currentCategories = computed(() => isAnnualTable.value ? annualCategories : categories)
+const activeCategoryLabel = computed(() => {
+  if (isAnnualTable.value && activeCell.value !== null && activeCell.value >= 10) return '年度西批'
+  if (isAnnualTable.value && activeCell.value === 9) return annualCustomCategory.value.trim() || '自填項目'
+  return activeCell.value === null ? '' : currentCategories.value[activeCell.value]
+})
 const customImagePreviewUrl = computed(() => customImageSource.value === 'upload' ? customUploadPreviewUrl.value : customCharacterImageUrl.value.trim())
 const hasCustomCharacterImage = computed(() => Boolean(customImagePreviewUrl.value))
 
+watch(selectedTableType, (tableType) => {
+  tableTitle.value = tableTypeOptions.find(option => option.value === tableType)?.label || ''
+})
+
+const {
+  currentSrc: annualPairingFirstSrc,
+  imageError: annualPairingFirstError,
+  handleImageError: handleAnnualPairingFirstError
+} = useImageFallback(() => selections.value[10]?.image || '')
+const {
+  currentSrc: annualPairingSecondSrc,
+  imageError: annualPairingSecondError,
+  handleImageError: handleAnnualPairingSecondError
+} = useImageFallback(() => selections.value[11]?.image || '')
+
 const filteredCharacters = computed(() => {
   const term = searchTerm.value.trim().toLowerCase()
-  const availableCharacters = [...characters, ...customCharacters.value]
+  const allCharacters = [...characters, ...customCharacters.value]
+  const availableCharacters = isAnnualTable.value && activeCell.value === 11 && selections.value[10]
+    ? allCharacters.filter(character => character.series === selections.value[10]?.series && character.id !== selections.value[10]?.id)
+    : allCharacters
   const matchedCharacters = !term ? availableCharacters : availableCharacters.filter(character =>
     character.name.toLowerCase().includes(term) ||
     getSeriesLabel(character.series).toLowerCase().includes(term)
@@ -59,12 +94,38 @@ function closePicker() {
 
 function selectCharacter(character: Character) {
   if (activeCell.value === null) return
-  selections.value[activeCell.value] = character
+  const selectedIndex = activeCell.value
+  selections.value[selectedIndex] = character
+
+  if (selectedIndex === 10 && selections.value[11]?.series !== character.series) {
+    delete selections.value[11]
+  }
+
   closePicker()
+}
+
+function handleAnnualMessageInput(event: Event) {
+  const textarea = event.target as HTMLTextAreaElement
+  const previousValue = annualMessage.value
+  const nextValue = textarea.value
+
+  if (nextValue.split('\n').length > 4) {
+    textarea.value = previousValue
+    return
+  }
+
+  annualMessage.value = nextValue
+  nextTick(() => {
+    if (textarea.scrollHeight > textarea.clientHeight) {
+      annualMessage.value = previousValue
+      textarea.value = previousValue
+    }
+  })
 }
 
 function clearCell() {
   if (activeCell.value === null) return
+  if (activeCell.value === 10) delete selections.value[11]
   delete selections.value[activeCell.value]
   closePicker()
 }
@@ -116,7 +177,7 @@ function addCustomCharacter() {
   const character: Character = {
     id: `custom-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     name,
-    series: 'MHA',
+    series: activeCell.value === 11 && selections.value[10] ? selections.value[10].series : 'MHA',
     image: customImageSource.value === 'url' ? customCharacterImageUrl.value.trim() : customUploadPreviewUrl.value
   }
 
@@ -130,19 +191,15 @@ async function exportTable() {
   isExporting.value = true
 
   try {
-    const canvas = await html2canvas(tableRef.value, {
-      backgroundColor: '#ffffff',
+    const image = await snapdom(tableRef.value, {
       scale: 2,
-      useCORS: true,
-      width: tableRef.value.offsetWidth,
-      height: tableRef.value.offsetHeight,
-      windowWidth: tableRef.value.offsetWidth,
-      windowHeight: tableRef.value.offsetHeight
+      reconcile: true,
+      embedFonts: true
     })
-    const link = document.createElement('a')
-    link.download = `${tableTitle.value || '動漫角色喜好表'}_${Date.now()}.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
+    await image.download({
+      format: 'png',
+      filename: `${tableTitle.value || '動漫角色喜好表'}_${Date.now()}.png`
+    })
   } catch (error) {
     console.error('表格圖片產生失敗:', error)
   } finally {
@@ -165,39 +222,120 @@ async function exportTable() {
     </div>
 
     <div class="mx-auto mb-6 flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div class="grid w-full gap-3 sm:max-w-xl sm:grid-cols-2">
-        <UFormGroup label="表格標題">
-          <UInput v-model="tableTitle" placeholder="輸入表格標題" />
-        </UFormGroup>
+      <div class="grid w-full gap-3 sm:max-w-3xl sm:grid-cols-3">
         <UFormGroup label="表格類型">
           <USelect v-model="selectedTableType" :options="tableTypeOptions" />
         </UFormGroup>
+        <UFormGroup label="表格標題">
+          <UInput v-model="tableTitle" placeholder="輸入表格標題" />
+        </UFormGroup>
+        <UFormGroup label="填表人">
+          <UInput v-model="tableAuthor" placeholder="輸入你的名字" />
+        </UFormGroup>
       </div>
-      <!-- <UButton icon="i-heroicons-arrow-down-tray" color="amber" :loading="isExporting" @click="exportTable">
+      <UButton icon="i-heroicons-arrow-down-tray" color="amber" :loading="isExporting" @click="exportTable">
         下載圖片
-      </UButton> -->
+      </UButton>
     </div>
     <div class="overflow-hidden pb-4">
       <div class="overflow-x-auto">
         <div ref="tableRef" class="mx-auto w-[1000px] bg-white p-7 text-gray-900">
-          <h2 class="mb-6 border-b-2 border-gray-100 pb-4 text-center text-3xl font-extrabold text-gray-700">
-            {{ tableTitle || '我的動漫角色喜好表' }}
-          </h2>
-          <div class="grid grid-cols-5">
-            <CharacterTableCell
-              v-for="(label, index) in categories"
-              :key="label"
-              :label="label"
-              :character="selections[index]"
-              @select="openPicker(index)"
-            />
-          </div>
+          <template v-if="isAnnualTable">
+            <div class="mb-6 flex items-end justify-between border-b-4 border-gray-700 pb-3">
+              <div class="flex items-end gap-3">
+                <h2 class="text-4xl font-black tracking-tight text-gray-800">{{ tableTitle }}</h2>
+              </div>
+              <p v-if="tableAuthor.trim()" class="text-lg font-bold text-gray-600">填表人：<span class="text-primary-600">{{ tableAuthor.trim() }}</span></p>
+            </div>
+            <div class="grid grid-cols-[1fr_1fr_1fr] gap-x-5">
+              <section class="row-span-2">
+                <h3 class="mb-3 text-2xl font-black text-gray-700">#綜合排名</h3>
+                <div class="space-y-3">
+                  <AnnualReviewCell
+                    v-for="(rank, index) in annualRanks"
+                    :key="rank"
+                    :label="annualCategories[index]"
+                    :rank="rank"
+                    :character="selections[index]"
+                    @select="openPicker(index)"
+                  />
+                </div>
+              </section>
+              <section class="space-y-4">
+                <AnnualReviewCell
+                  v-for="(label, index) in annualCategories.slice(4, 7)"
+                  :key="label"
+                  :label="label"
+                  :character="selections[index + 4]"
+                  @select="openPicker(index + 4)"
+                />
+              </section>
+              <section class="space-y-4">
+                <AnnualReviewCell
+                  v-for="(label, index) in annualCategories.slice(7)"
+                  :key="label"
+                  :label="index === 2 ? annualCustomCategory : label"
+                  :editable-label="index === 2"
+                  :character="selections[index + 7]"
+                  @update:label="annualCustomCategory = $event"
+                  @select="openPicker(index + 7)"
+                />
+              </section>
+              <section class="col-span-2 mt-5 grid grid-cols-2 gap-5">
+                <div>
+                  <div class="mb-2 flex items-baseline justify-between gap-2">
+                    <h3 class="text-2xl font-black text-gray-700">#年度西批</h3>
+                    <p v-if="selections[10]" class="truncate text-sm font-bold text-gray-500">來自：{{ getSeriesLabel(selections[10].series) }}</p>
+                  </div>
+                  <div class="flex h-[132px] w-full items-center justify-center gap-3 rounded-2xl border-2 border-gray-300 p-3">
+                    <button type="button" class="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl text-sm font-bold text-primary-600 transition hover:bg-primary-50" @click="openPicker(10)">
+                      <img v-if="selections[10] && !annualPairingFirstError" :src="annualPairingFirstSrc" :alt="selections[10]?.name" class="h-20 w-20 rounded-lg object-cover" @error="handleAnnualPairingFirstError">
+                      <span v-else-if="selections[10]" class="flex h-20 w-20 items-center justify-center rounded-lg bg-gray-100 text-2xl text-gray-400">{{ selections[10]?.name.charAt(0) }}</span>
+                      <span v-else class="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-100 text-xl text-gray-400">+</span>
+                      <span class="w-full truncate">{{ selections[10]?.name || '選擇角色' }}</span>
+                    </button>
+                    <UIcon name="i-heroicons-x-mark" class="shrink-0 text-xl text-gray-400" />
+                    <button type="button" class="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl text-sm font-bold text-primary-600 transition hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent" :disabled="!selections[10]" @click="openPicker(11)">
+                      <img v-if="selections[11] && !annualPairingSecondError" :src="annualPairingSecondSrc" :alt="selections[11]?.name" class="h-20 w-20 rounded-lg object-cover" @error="handleAnnualPairingSecondError">
+                      <span v-else-if="selections[11]" class="flex h-20 w-20 items-center justify-center rounded-lg bg-gray-100 text-2xl text-gray-400">{{ selections[11]?.name.charAt(0) }}</span>
+                      <span v-else class="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-100 text-xl text-gray-400">+</span>
+                      <span class="w-full truncate">{{ selections[11]?.name || '選擇角色' }}</span>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <h3 class="mb-2 text-2xl font-black text-gray-700">#自由留言</h3>
+                  <textarea :value="annualMessage" rows="4" class="h-[132px] w-full resize-none overflow-hidden rounded-2xl border-2 border-gray-300 p-4 text-base leading-6 text-gray-700 outline-none placeholder:text-gray-400 focus:border-primary-500" placeholder="寫下今年想留下的話吧。" @input="handleAnnualMessageInput" />
+                </div>
+              </section>
+            </div>
+          </template>
+          <template v-else>
+            <div class="mb-6 grid grid-cols-[1fr_auto_1fr] items-end border-b-2 border-gray-100 pb-4">
+              <span />
+              <h2 class="text-center text-3xl font-extrabold text-gray-700">
+                {{ tableTitle }}
+              </h2>
+              <p v-if="tableAuthor.trim()" class="justify-self-end text-sm font-medium text-gray-500">
+                填表人：{{ tableAuthor.trim() }}
+              </p>
+            </div>
+            <div class="grid grid-cols-5">
+              <CharacterTableCell
+                v-for="(label, index) in categories"
+                :key="label"
+                :label="label"
+                :character="selections[index]"
+                @select="openPicker(index)"
+              />
+            </div>
+          </template>
         </div>
       </div>
     </div>
 
     <div class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-      已填寫 {{ Object.keys(selections).length }} / {{ categories.length }} 格
+      已填寫 {{ Object.keys(selections).length }} / {{ currentCategories.length }} 格
     </div>
 
     <UModal v-model="isPickerOpen">
@@ -206,7 +344,7 @@ async function exportTable() {
           <div class="flex items-center justify-between gap-4">
             <div>
               <h2 class="text-lg font-bold">選擇角色</h2>
-              <p v-if="activeCell !== null" class="text-sm text-gray-500 dark:text-gray-400">要填入「{{ categories[activeCell] }}」的角色</p>
+              <p v-if="activeCell !== null" class="text-sm text-gray-500 dark:text-gray-400">要填入「{{ activeCategoryLabel }}」的角色</p>
             </div>
             <div class="flex items-center gap-2">
               <UButton v-if="activeCell !== null && selections[activeCell]" color="red" variant="ghost" size="sm" @click="clearCell">
