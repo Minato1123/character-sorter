@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Character } from '~/types/character'
 import { characters } from '~/utils/characters'
-import { generateTop10Image } from '~/utils/imageGenerator'
+import { snapdom } from '@zumer/snapdom'
 import { getSeriesColor, getSeriesLabel, seriesLabelMap } from '~/utils/series'
 
 const route = useRoute()
@@ -10,6 +10,7 @@ const currentIndex = ref(0)
 const rankings = ref<Record<number, Character>>({})
 const isGeneratingImage = ref(false)
 const downloadError = ref('')
+const exportRef = ref<HTMLElement | null>(null)
 
 const selectedSeries = computed(() => {
   const queryValue = route.query.series
@@ -78,21 +79,20 @@ function selectRank(rank: number) {
 }
 
 async function downloadResultImage() {
+  if (!exportRef.value) return
   isGeneratingImage.value = true
   downloadError.value = ''
 
   try {
-    const blob = await generateTop10Image(
-      sortedResults.value.map(result => result.character),
-      selectedSeries.value,
-      true
-    )
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `隨機Top10角色排名_${Date.now()}.png`
-    link.click()
-    URL.revokeObjectURL(url)
+    const image = await snapdom(exportRef.value, {
+      scale: 2,
+      reconcile: true,
+      embedFonts: true
+    })
+    await image.download({
+      format: 'png',
+      filename: `隨機Top10角色排名_${Date.now()}.png`
+    })
   } catch (error) {
     console.error('生成隨機排名圖片失敗:', error)
     downloadError.value = '圖片產生失敗，請再試一次。'
@@ -196,6 +196,28 @@ onMounted(() => {
           :character="result.character"
           :index="result.rank - 1"
         />
+      </div>
+
+      <div ref="exportRef" class="fixed left-[-10000px] top-0 w-[1000px] bg-white p-10 text-gray-900">
+        <div class="mb-7 flex items-start justify-between border-b-2 border-gray-100 pb-5">
+          <div class="shrink-0">
+            <p class="text-sm font-bold tracking-widest text-violet-500">ANIME TOOLS</p>
+            <h2 class="mt-1 whitespace-nowrap text-4xl font-black">你的隨機 Top 10</h2>
+          </div>
+          <div class="flex max-w-md flex-wrap justify-end gap-2">
+            <span v-for="series in selectedSeries" :key="series" class="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-600">
+              {{ getSeriesLabel(series) }}
+            </span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <ResultItem
+            v-for="result in sortedResults"
+            :key="result.character.id"
+            :character="result.character"
+            :index="result.rank - 1"
+          />
+        </div>
       </div>
     </div>
   </UContainer>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { characters } from '~/utils/characters'
-import { generateTop10Image } from '~/utils/imageGenerator'
+import { snapdom } from '@zumer/snapdom'
 import { getSeriesColor, getSeriesLabel } from '~/utils/series'
 
 const { sortedList, startSorting, selectedSeries, comparisonCount, startTime, endTime } = useSorter()
@@ -9,6 +9,8 @@ const { sortedList, startSorting, selectedSeries, comparisonCount, startTime, en
 const topCount = computed(() => Math.min(10, sortedList.value.length))
 const top10 = computed(() => sortedList.value.slice(0, topCount.value))
 const remaining = computed(() => sortedList.value.slice(topCount.value))
+const exportRef = ref<HTMLElement | null>(null)
+const isGeneratingImage = ref(false)
 
 // 標題
 const titleText = computed(() => `你的 Top ${topCount.value} 排名`)
@@ -45,21 +47,24 @@ const restart = () => {
   navigateTo({ name: 'index' })
 }
 
-// 下載圖片功能（使用 Canvas 生成，傳入 selectedSeries）
 const downloadScreenshot = async () => {
+  if (!exportRef.value) return
+  isGeneratingImage.value = true
+
   try {
-    // 使用 Canvas API 生成圖片
-    const blob = await generateTop10Image(top10.value, selectedSeries.value)
-    
-    // 下載
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.download = `我的Top${topCount.value}角色排名_${new Date().getTime()}.png`
-    link.href = url
-    link.click()
-    URL.revokeObjectURL(url)
+    const image = await snapdom(exportRef.value, {
+      scale: 2,
+      reconcile: true,
+      embedFonts: true
+    })
+    await image.download({
+      format: 'png',
+      filename: `我的Top${topCount.value}角色排名_${Date.now()}.png`
+    })
   } catch (error) {
     console.error('生成圖片失敗:', error)
+  } finally {
+    isGeneratingImage.value = false
   }
 }
 
@@ -103,8 +108,8 @@ onMounted(() => {
         <UButton icon="i-heroicons-home" color="gray" @click="restart">
           返回首頁
         </UButton>
-        <UButton icon="i-heroicons-arrow-down-tray" @click="downloadScreenshot">
-          下載截圖
+        <UButton icon="i-heroicons-arrow-down-tray" :loading="isGeneratingImage" @click="downloadScreenshot">
+          下載圖片
         </UButton>
       </div>
     </div>
@@ -136,6 +141,23 @@ onMounted(() => {
         >
           {{ getSeriesLabel(char.series) }}
         </UBadge>
+      </div>
+    </div>
+
+    <div ref="exportRef" class="fixed left-[-10000px] top-0 w-[1000px] bg-white p-10 text-gray-900">
+      <div class="mb-7 flex items-start justify-between border-b-2 border-gray-100 pb-5">
+        <div class="shrink-0">
+          <p class="text-sm font-bold tracking-widest text-primary-500">ANIME TOOLS</p>
+          <h2 class="mt-1 whitespace-nowrap text-4xl font-black">{{ titleText }}</h2>
+        </div>
+        <div class="flex max-w-md flex-wrap justify-end gap-2">
+          <span v-for="series in selectedSeries" :key="series" class="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-600">
+            {{ getSeriesLabel(series) }}
+          </span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <ResultItem v-for="(char, index) in top10" :key="char.id" :character="char" :index="index" />
       </div>
     </div>
   </UContainer>
