@@ -65,6 +65,23 @@ function loadExcludedCharacters(key: string, target: Ref<string[]>) {
   }
 }
 
+function loadSeriesSelection(key: string, target: Ref<Record<string, boolean>>) {
+  const saved = localStorage.getItem(key)
+  if (!saved) return
+
+  try {
+    const parsed = JSON.parse(saved)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return
+
+    target.value = Object.fromEntries(seriesOptions.map(({ value }) => [
+      value,
+      typeof parsed[value] === 'boolean' ? parsed[value] : true
+    ]))
+  } catch {
+    localStorage.removeItem(key)
+  }
+}
+
 function syncToRandomRanking() {
   randomSeriesSelection.value = { ...seriesSelection.value }
   randomExcludedCharacterIds.value = [...sorterExcludedCharacterIds.value]
@@ -76,10 +93,14 @@ function syncToSorter() {
 }
 
 onMounted(() => {
+  loadSeriesSelection('character-sorter-sorter-series-selection', seriesSelection)
+  loadSeriesSelection('character-sorter-random-series-selection', randomSeriesSelection)
   loadExcludedCharacters('character-sorter-sorter-excluded-characters', sorterExcludedCharacterIds)
   loadExcludedCharacters('character-sorter-random-excluded-characters', randomExcludedCharacterIds)
 })
 
+watch(seriesSelection, value => localStorage.setItem('character-sorter-sorter-series-selection', JSON.stringify(value)), { deep: true })
+watch(randomSeriesSelection, value => localStorage.setItem('character-sorter-random-series-selection', JSON.stringify(value)), { deep: true })
 watch(sorterExcludedCharacterIds, value => localStorage.setItem('character-sorter-sorter-excluded-characters', JSON.stringify(value)), { deep: true })
 watch(randomExcludedCharacterIds, value => localStorage.setItem('character-sorter-random-excluded-characters', JSON.stringify(value)), { deep: true })
 </script>
