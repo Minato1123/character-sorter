@@ -2,7 +2,13 @@
 import { characters } from '~/utils/characters'
 import { getSeriesColor, seriesColorMap, seriesLabelMap } from '~/utils/series'
 
-const props = defineProps<{ modelValue: Record<string, boolean>, excludedIds: string[] }>()
+type SeriesOption = { value: string, label: string }
+
+const props = defineProps<{
+  modelValue: Record<string, boolean>
+  excludedIds: string[]
+  seriesOptions?: SeriesOption[]
+}>()
 const emit = defineEmits<{
   'update:modelValue': [value: Record<string, boolean>]
   'update:excludedIds': [value: string[]]
@@ -11,7 +17,8 @@ const emit = defineEmits<{
 const isDialogOpen = ref(false)
 const activeSeries = ref<string | null>(null)
 const draftExcludedIds = ref<string[]>([])
-const seriesOptions = Object.entries(seriesLabelMap).map(([value, label]) => ({ value, label }))
+const allSeriesOptions = Object.entries(seriesLabelMap).map(([value, label]) => ({ value, label }))
+const displayedSeriesOptions = computed(() => props.seriesOptions ?? allSeriesOptions)
 
 function charactersInSeries(series: string) {
   return characters.filter(character => character.series === series).sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'))
@@ -83,7 +90,7 @@ function seriesOutlineColor(series: string) {
 <template>
   <div class="space-y-2">
     <div
-      v-for="series in seriesOptions"
+      v-for="series in displayedSeriesOptions"
       :key="series.value"
       class="flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors"
       :class="modelValue[series.value] ? seriesOutlineColor(series.value) : 'border-gray-200 dark:border-gray-800'"
