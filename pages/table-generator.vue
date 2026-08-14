@@ -5,9 +5,9 @@ import { characters } from '~/utils/characters'
 import { getSeriesLabel } from '~/utils/series'
 
 const categories = [
-  '本命', '初戀', '最佳人設', '最佳性格', '最強戰力',
-  '最強智商', '最想結婚', '最想做朋友', '最想做家人', '最想談戀愛',
-  '意難平', '心理陰影', '一生之敵', '無法理解', '也就是臉好看'
+  '本命', '初戀',  '最佳個性', '最強戰力', '智商最高',
+  '最想當家人', '最想當朋友', '最想談戀愛', '最想結婚', '婚外首選',
+  '難以釋懷', '心理陰影', '此生宿敵', '無法理解', '只有臉好看'
 ]
 
 const annualCategories = [
