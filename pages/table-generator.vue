@@ -41,6 +41,7 @@ const tableTypeOptions = [
 const selectedTableType = ref('classic')
 const isAnnualTable = computed(() => selectedTableType.value === 'annual')
 const isItsMeTable = computed(() => selectedTableType.value === 'its-me')
+const currentTableType = computed(() => tableTypeOptions.find(option => option.value === selectedTableType.value))
 const tableTitle = ref(tableTypeOptions[0].label)
 const tableAuthor = ref('')
 const annualMessage = ref('')
@@ -65,6 +66,7 @@ const tableRef = ref<HTMLElement | null>(null)
 const customImageInput = ref<HTMLInputElement | null>(null)
 
 const currentCategories = computed(() => isAnnualTable.value ? annualCategories : isItsMeTable.value ? itsMeCategories : categories)
+const resolvedTableTitle = computed(() => tableTitle.value.trim() || currentTableType.value?.label || '角色喜好表')
 const activeCategoryLabel = computed(() => {
   if (isAnnualTable.value && activeCell.value !== null && activeCell.value >= 10) return '年度西批'
   if (isAnnualTable.value && activeCell.value === 9) return annualCustomCategory.value.trim() || '自填項目'
@@ -232,7 +234,7 @@ async function exportTable() {
     })
     await image.download({
       format: 'png',
-      filename: `${tableTitle.value || '動漫角色喜好表'}_${Date.now()}.png`
+      filename: `${resolvedTableTitle.value}_${Date.now()}.png`
     })
   } catch (error) {
     console.error('表格圖片產生失敗:', error)
@@ -273,11 +275,11 @@ async function exportTable() {
     </div>
     <div class="overflow-hidden pb-4">
       <div class="overflow-x-auto">
-        <div ref="tableRef" class="mx-auto w-[1000px] bg-white p-7 text-gray-900">
+        <div ref="tableRef" class="mx-auto bg-white text-gray-900" :class="isItsMeTable ? 'w-[760px] aspect-square p-5' : 'w-[1000px] p-7'">
           <template v-if="isAnnualTable">
             <div class="mb-6 flex items-end justify-between border-b-4 border-gray-700 pb-3">
               <div class="flex items-end gap-3">
-                <h2 class="text-4xl font-black tracking-tight text-gray-800">{{ tableTitle }}</h2>
+                <h2 class="text-4xl font-black tracking-tight text-gray-800">{{ resolvedTableTitle }}</h2>
               </div>
               <p v-if="tableAuthor.trim()" class="text-lg font-bold text-gray-600">填表人：<span class="text-primary-600">{{ tableAuthor.trim() }}</span></p>
             </div>
@@ -345,11 +347,12 @@ async function exportTable() {
             </div>
           </template>
           <template v-else-if="isItsMeTable">
-            <div class="mb-8 text-center">
-              <h2 class="inline-block bg-black px-6 py-3 text-4xl font-black italic text-white">It's me</h2>
-              <p v-if="tableAuthor.trim()" class="mt-2 text-sm font-medium text-gray-500">填表人：{{ tableAuthor.trim() }}</p>
-            </div>
-            <div class="mx-auto grid w-[724px] grid-cols-8 auto-rows-[80px] gap-3">
+            <div class="flex h-[720px] flex-col items-center justify-center">
+              <div class="mb-8 text-center">
+                <h2 class="inline-block bg-black px-6 py-3 text-4xl font-black italic text-white">It's me</h2>
+                <p v-if="tableAuthor.trim()" class="mt-2 text-sm font-medium text-gray-500">填表人：{{ tableAuthor.trim() }}</p>
+              </div>
+              <div class="mx-auto grid w-[632px] grid-cols-7 auto-rows-[80px] gap-3">
               <div class="col-start-2 row-start-1"><ItsMeUploadCell :label="itsMeUploadLabels.color" :image="itsMeImages.color" @upload="setItsMeImage('color', $event)" /></div>
               <div class="col-start-3 row-start-1"><ItsMeUploadCell :label="itsMeUploadLabels.animal" :image="itsMeImages.animal" @upload="setItsMeImage('animal', $event)" /></div>
               <div class="col-start-5 col-end-7 row-start-1 row-end-3">
@@ -373,13 +376,14 @@ async function exportTable() {
               <div class="col-start-3 col-end-5 row-start-4 row-end-6"><ItsMeUploadCell :label="itsMeUploadLabels.place" :image="itsMeImages.place" @upload="setItsMeImage('place', $event)" /></div>
               <div class="col-start-5 row-start-5"><ItsMeUploadCell :label="itsMeUploadLabels.anime" :image="itsMeImages.anime" @upload="setItsMeImage('anime', $event)" /></div>
               <div class="col-start-4 row-start-6"><ItsMeUploadCell :label="itsMeUploadLabels.game" :image="itsMeImages.game" @upload="setItsMeImage('game', $event)" /></div>
+              </div>
             </div>
           </template>
           <template v-else>
             <div class="mb-6 grid grid-cols-[1fr_auto_1fr] items-end border-b-2 border-gray-100 pb-4">
               <span />
               <h2 class="text-center text-3xl font-extrabold text-gray-700">
-                {{ tableTitle }}
+                {{ resolvedTableTitle }}
               </h2>
               <p v-if="tableAuthor.trim()" class="justify-self-end text-sm font-medium text-gray-500">
                 填表人：{{ tableAuthor.trim() }}
