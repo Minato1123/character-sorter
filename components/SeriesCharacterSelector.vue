@@ -89,7 +89,6 @@ function seriesOutlineColor(series: string) {
       <UCheckbox :model-value="modelValue[series.value]" :label="series.label" :color="getSeriesColor(series.value)" @update:model-value="updateSeries(series.value, $event)" />
       <span v-if="excludedCount(series.value) > 0" class="text-xs font-semibold" :class="seriesTextColor(series.value)">-{{ excludedCount(series.value) }}</span>
       <UButton class="ml-auto" color="gray" variant="ghost" size="xs" icon="i-heroicons-adjustments-horizontal" @click="openCharacterDialog(series.value)">
-        篩選角色
       </UButton>
     </div>
   </div>
