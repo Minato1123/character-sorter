@@ -454,7 +454,10 @@ async function exportTable() {
               <div class="mt-3">
                 <template v-if="customImageSource === 'upload'">
                   <input ref="customImageInput" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="hidden" @change="handleCustomImageChange">
-                  <UButton v-if="!customImagePreviewUrl" block color="gray" variant="soft" icon="i-heroicons-arrow-up-tray" @click="openImagePicker">選擇 JPG、JPEG、PNG 或 WEBP</UButton>
+                  <UButton v-if="!customImagePreviewUrl" block size="lg" color="primary" variant="soft" icon="i-heroicons-arrow-up-tray" class="min-h-20 border-2 border-dashed border-primary-300 text-base font-bold dark:border-primary-700" @click="openImagePicker">
+                    點擊上傳角色圖片
+                    <span class="text-xs font-medium opacity-70">JPG、JPEG、PNG 或 WEBP</span>
+                  </UButton>
                 </template>
                 <UInput v-else :model-value="customCharacterImageUrl" placeholder="https://example.com/character.jpg" icon="i-heroicons-link" @update:model-value="handleImageUrlInput" />
 
