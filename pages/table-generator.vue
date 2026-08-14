@@ -2,7 +2,7 @@
 import { snapdom } from '@zumer/snapdom'
 import type { Character } from '~/types/character'
 import { characters } from '~/utils/characters'
-import { getSeriesLabel } from '~/utils/series'
+import { getSeriesLabel, seriesLabelMap } from '~/utils/series'
 
 const categories = [
   '本命', '初戀',  '最佳個性', '最強戰力', '智商最高',
@@ -16,6 +16,8 @@ const annualCategories = [
 ]
 const annualRanks = ['冠軍', '亞軍', '季軍', '殿軍']
 const itsMeCategories = ['你推']
+type ImpressionField = 'firstImpression' | 'currentImpression'
+type ImpressionEntry = Record<ImpressionField, string>
 const itsMeUploadLabels = {
   self: '你',
   color: '你喜歡的顏色',
@@ -36,11 +38,13 @@ const itsMeUploadLabels = {
 const tableTypeOptions = [
   { label: '經典角色喜好表', value: 'classic' },
   { label: '我推的年度回顧', value: 'annual' },
-  { label: "It's me", value: 'its-me' }
+  { label: "It's me", value: 'its-me' },
+  { label: '印象遊戲', value: 'impression' }
 ]
 const selectedTableType = ref('classic')
 const isAnnualTable = computed(() => selectedTableType.value === 'annual')
 const isItsMeTable = computed(() => selectedTableType.value === 'its-me')
+const isImpressionTable = computed(() => selectedTableType.value === 'impression')
 const currentTableType = computed(() => tableTypeOptions.find(option => option.value === selectedTableType.value))
 const tableTitle = ref(tableTypeOptions[0].label)
 const tableAuthor = ref('')
@@ -50,6 +54,8 @@ const classicSelections = ref<Record<number, Character | undefined>>({})
 const annualSelections = ref<Record<number, Character | undefined>>({})
 const itsMeSelections = ref<Record<number, Character | undefined>>({})
 const itsMeImages = ref<Partial<Record<keyof typeof itsMeUploadLabels, string>>>({})
+const impressionSeries = ref<Character['series']>('WindBreaker')
+const impressions = ref<Partial<Record<Character['series'], Record<string, ImpressionEntry>>>>({})
 const selections = computed(() => isAnnualTable.value ? annualSelections.value : isItsMeTable.value ? itsMeSelections.value : classicSelections.value)
 const customCharacters = ref<Character[]>([])
 const activeCell = ref<number | null>(null)
@@ -63,9 +69,27 @@ const pickerTab = ref<'select' | 'custom'>('select')
 const isPickerOpen = ref(false)
 const isExporting = ref(false)
 const tableRef = ref<HTMLElement | null>(null)
+const impressionExportRefs = ref<(HTMLElement | null)[]>([])
 const customImageInput = ref<HTMLInputElement | null>(null)
 
 const currentCategories = computed(() => isAnnualTable.value ? annualCategories : isItsMeTable.value ? itsMeCategories : categories)
+const impressionSeriesOptions = Object.entries(seriesLabelMap).map(([value, label]) => ({ value, label }))
+const impressionCharacters = computed(() => characters.filter(character => character.series === impressionSeries.value))
+const exportableImpressionCharacters = computed(() => impressionCharacters.value.filter(character => {
+  const entry = impressions.value[impressionSeries.value]?.[character.id]
+  return Boolean(entry?.firstImpression.trim() || entry?.currentImpression.trim())
+}))
+const impressionPages = computed(() => {
+  const pages: Character[][] = []
+  for (let index = 0; index < exportableImpressionCharacters.value.length; index += 6) {
+    pages.push(exportableImpressionCharacters.value.slice(index, index + 6))
+  }
+  return pages
+})
+const completedImpressionCount = computed(() => impressionCharacters.value.filter(character => {
+  const entry = impressions.value[impressionSeries.value]?.[character.id]
+  return Boolean(entry?.firstImpression.trim() && entry.currentImpression.trim())
+}).length)
 const resolvedTableTitle = computed(() => tableTitle.value.trim() || currentTableType.value?.label || '角色喜好表')
 const activeCategoryLabel = computed(() => {
   if (isAnnualTable.value && activeCell.value !== null && activeCell.value >= 10) return '年度西批'
@@ -159,6 +183,23 @@ function setItsMeImage(key: keyof typeof itsMeUploadLabels, file: File) {
   itsMeImages.value[key] = URL.createObjectURL(file)
 }
 
+function getImpressionValue(characterId: string, field: ImpressionField) {
+  return impressions.value[impressionSeries.value]?.[characterId]?.[field] || ''
+}
+
+function updateImpression(characterId: string, field: ImpressionField, value: string) {
+  const seriesImpressions = impressions.value[impressionSeries.value] || {}
+  const entry = seriesImpressions[characterId] || { firstImpression: '', currentImpression: '' }
+  impressions.value[impressionSeries.value] = {
+    ...seriesImpressions,
+    [characterId]: { ...entry, [field]: value }
+  }
+}
+
+function setImpressionExportRef(index: number, element: Element | null) {
+  impressionExportRefs.value[index] = element instanceof HTMLElement ? element : null
+}
+
 function clearCell() {
   if (activeCell.value === null) return
   if (activeCell.value === 10) delete selections.value[11]
@@ -227,6 +268,22 @@ async function exportTable() {
   isExporting.value = true
 
   try {
+    if (isImpressionTable.value) {
+      for (const [index, pageRef] of impressionExportRefs.value.entries()) {
+        if (!pageRef) continue
+        const image = await snapdom(pageRef, {
+          scale: 2,
+          reconcile: true,
+          embedFonts: true
+        })
+        await image.download({
+          format: 'png',
+          filename: `${resolvedTableTitle.value}_${getSeriesLabel(impressionSeries.value)}_第${index + 1}頁_${Date.now()}.png`
+        })
+      }
+      return
+    }
+
     const image = await snapdom(tableRef.value, {
       scale: 2,
       reconcile: true,
@@ -268,8 +325,11 @@ async function exportTable() {
         <UFormGroup label="填表人">
           <UInput v-model="tableAuthor" placeholder="輸入你的名字" />
         </UFormGroup>
+        <UFormGroup v-if="isImpressionTable" label="選擇作品">
+          <USelect v-model="impressionSeries" :options="impressionSeriesOptions" />
+        </UFormGroup>
       </div>
-      <UButton icon="i-heroicons-arrow-down-tray" color="amber" :loading="isExporting" @click="exportTable">
+      <UButton icon="i-heroicons-arrow-down-tray" color="amber" :loading="isExporting" :disabled="isImpressionTable && impressionPages.length === 0" @click="exportTable">
         下載圖片
       </UButton>
     </div>
@@ -346,6 +406,67 @@ async function exportTable() {
               </section>
             </div>
           </template>
+          <template v-else-if="isImpressionTable">
+            <div class="mb-6 flex items-end justify-between border-b-2 border-gray-100 pb-4">
+              <div>
+                <h2 class="mt-1 text-4xl font-black text-gray-800">{{ resolvedTableTitle }}</h2>
+                <p class="mt-2 text-base font-semibold text-gray-500">{{ getSeriesLabel(impressionSeries) }}｜初印象 vs 現在</p>
+              </div>
+              <p v-if="tableAuthor.trim()" class="text-sm font-medium text-gray-500">填表人：{{ tableAuthor.trim() }}</p>
+            </div>
+            <div class="overflow-hidden rounded-2xl border-2 border-gray-200 bg-white">
+              <div class="grid grid-cols-[150px_minmax(0,1fr)_minmax(0,1fr)] gap-4 border-b-2 border-gray-200 bg-gray-50 px-4 py-3 text-center text-base font-black text-gray-700">
+                <span>角色</span>
+                <span>初印象</span>
+                <span>現在</span>
+              </div>
+              <div class="divide-y divide-gray-200">
+                <ImpressionCharacterCard
+                  v-for="character in impressionCharacters"
+                  :key="character.id"
+                  :character="character"
+                  :first-impression="getImpressionValue(character.id, 'firstImpression')"
+                  :current-impression="getImpressionValue(character.id, 'currentImpression')"
+                  @update:first-impression="updateImpression(character.id, 'firstImpression', $event)"
+                  @update:current-impression="updateImpression(character.id, 'currentImpression', $event)"
+                />
+              </div>
+            </div>
+            <div class="fixed left-[-10000px] top-0">
+              <div
+                v-for="(page, pageIndex) in impressionPages"
+                :key="`${impressionSeries}-${pageIndex}`"
+                :ref="element => setImpressionExportRef(pageIndex, element as Element | null)"
+                class="w-[1000px] bg-white p-7 text-gray-900"
+              >
+                <div class="mb-6 flex items-end justify-between border-b-2 border-gray-100 pb-4">
+                  <div>
+                    <p class="text-sm font-bold text-primary-500">印象遊戲</p>
+                    <h2 class="mt-1 text-4xl font-black">{{ resolvedTableTitle }}</h2>
+                    <p class="mt-2 text-base font-semibold text-gray-500">{{ getSeriesLabel(impressionSeries) }}｜初印象 vs 現在</p>
+                  </div>
+                  <p class="text-sm font-medium text-gray-500">第 {{ pageIndex + 1 }} / {{ impressionPages.length }} 頁</p>
+                </div>
+                <div class="overflow-hidden rounded-2xl border-2 border-gray-200 bg-white">
+                  <div class="grid grid-cols-[150px_minmax(0,1fr)_minmax(0,1fr)] gap-4 border-b-2 border-gray-200 bg-gray-50 px-4 py-3 text-center text-base font-black text-gray-700">
+                    <span>角色</span>
+                    <span>初印象</span>
+                    <span>現在</span>
+                  </div>
+                  <div class="divide-y divide-gray-200">
+                    <ImpressionCharacterCard
+                      v-for="character in page"
+                      :key="character.id"
+                      :character="character"
+                      :first-impression="getImpressionValue(character.id, 'firstImpression')"
+                      :current-impression="getImpressionValue(character.id, 'currentImpression')"
+                      export-mode
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
           <template v-else-if="isItsMeTable">
             <div class="flex h-[720px] flex-col items-center justify-center">
               <div class="mb-8 text-center">
@@ -403,7 +524,10 @@ async function exportTable() {
       </div>
     </div>
 
-    <div class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+    <div v-if="isImpressionTable" class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+      已完成 {{ completedImpressionCount }} / {{ impressionCharacters.length }} 位角色
+    </div>
+    <div v-else class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
       已填寫 {{ Object.keys(selections).length }} / {{ currentCategories.length }} 格
     </div>
 
