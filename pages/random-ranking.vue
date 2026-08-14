@@ -11,6 +11,11 @@ const rankings = ref<Record<number, Character>>({})
 const isGeneratingImage = ref(false)
 const downloadError = ref('')
 const exportRef = ref<HTMLElement | null>(null)
+const resultOrder = ref<'rank' | 'appearance'>('rank')
+const resultOrderOptions = [
+  { label: '依名次排序', value: 'rank' },
+  { label: '依出場順序排序', value: 'appearance' }
+]
 
 const selectedSeries = computed(() => {
   const queryValue = route.query.series
@@ -32,6 +37,16 @@ const sortedResults = computed(() =>
     .map(([rank, character]) => ({ rank: Number(rank), character }))
     .sort((a, b) => a.rank - b.rank)
 )
+const appearanceOrderById = computed(() =>
+  new Map(selectedCharacters.value.map((character, index) => [character.id, index + 1]))
+)
+const displayResults = computed(() => {
+  if (resultOrder.value === 'rank') return sortedResults.value
+
+  return [...sortedResults.value].sort((a, b) =>
+    (appearanceOrderById.value.get(a.character.id) || 0) - (appearanceOrderById.value.get(b.character.id) || 0)
+  )
+})
 
 
 function randomInt(max: number) {
@@ -69,6 +84,7 @@ function startGame() {
   selectedCharacters.value = shuffle(candidates).slice(0, 10)
   currentIndex.value = 0
   rankings.value = {}
+  resultOrder.value = 'rank'
 }
 
 function selectRank(rank: number) {
@@ -182,6 +198,7 @@ onMounted(() => {
         <div class="mt-6 flex justify-center gap-3">
           <UButton color="gray" icon="i-heroicons-home" @click="navigateTo({ name: 'index' })">返回首頁</UButton>
           <UButton color="violet" icon="i-heroicons-arrow-path" @click="startGame">再玩一次</UButton>
+          <USelect v-model="resultOrder" :options="resultOrderOptions" class="w-44" />
           <UButton icon="i-heroicons-arrow-down-tray" :loading="isGeneratingImage" @click="downloadResultImage">
             下載圖片
           </UButton>
@@ -191,10 +208,11 @@ onMounted(() => {
 
       <div class="space-y-4">
         <ResultItem
-          v-for="result in sortedResults"
+          v-for="result in displayResults"
           :key="result.character.id"
           :character="result.character"
           :index="result.rank - 1"
+          :appearance-order="appearanceOrderById.get(result.character.id)"
         />
       </div>
 
@@ -212,10 +230,11 @@ onMounted(() => {
         </div>
         <div class="grid grid-cols-2 gap-4">
           <ResultItem
-            v-for="result in sortedResults"
+            v-for="result in displayResults"
             :key="result.character.id"
             :character="result.character"
             :index="result.rank - 1"
+            :appearance-order="appearanceOrderById.get(result.character.id)"
           />
         </div>
       </div>

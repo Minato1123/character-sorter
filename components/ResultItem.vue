@@ -5,6 +5,7 @@ import { getSeriesColor, getSeriesLabel } from '~/utils/series'
 const props = defineProps<{
   character: Character
   index: number
+  appearanceOrder?: number
 }>()
 
 const { currentSrc, imageError, handleImageError } = useImageFallback(() => props.character.image)
@@ -49,6 +50,9 @@ const seriesLabel = computed(() => getSeriesLabel(props.character.series))
       <UBadge :color="seriesColor" variant="solid" class="mt-1">
         {{ seriesLabel }}
       </UBadge>
+      <p v-if="appearanceOrder" class="mt-1 text-xs font-medium text-gray-400 dark:text-gray-500">
+        出場順序：第 {{ appearanceOrder }} 位
+      </p>
     </div>
 
     <div v-if="index === 0" class="text-3xl">
