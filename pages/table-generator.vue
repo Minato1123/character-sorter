@@ -21,11 +21,14 @@ const tableTypeOptions = [
   { label: '我推的年度回顧', value: 'annual' }
 ]
 const selectedTableType = ref('classic')
+const isAnnualTable = computed(() => selectedTableType.value === 'annual')
 const tableTitle = ref(tableTypeOptions[0].label)
 const tableAuthor = ref('')
 const annualMessage = ref('')
 const annualCustomCategory = ref('')
-const selections = ref<Record<number, Character | undefined>>({})
+const classicSelections = ref<Record<number, Character | undefined>>({})
+const annualSelections = ref<Record<number, Character | undefined>>({})
+const selections = computed(() => isAnnualTable.value ? annualSelections.value : classicSelections.value)
 const customCharacters = ref<Character[]>([])
 const activeCell = ref<number | null>(null)
 const searchTerm = ref('')
@@ -40,7 +43,6 @@ const isExporting = ref(false)
 const tableRef = ref<HTMLElement | null>(null)
 const customImageInput = ref<HTMLInputElement | null>(null)
 
-const isAnnualTable = computed(() => selectedTableType.value === 'annual')
 const currentCategories = computed(() => isAnnualTable.value ? annualCategories : categories)
 const activeCategoryLabel = computed(() => {
   if (isAnnualTable.value && activeCell.value !== null && activeCell.value >= 10) return '年度西批'
