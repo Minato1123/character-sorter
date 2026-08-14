@@ -64,6 +64,7 @@ function seriesTextColor(series: string) {
   if (color === 'orange') return 'text-orange-500'
   if (color === 'red') return 'text-red-500'
   if (color === 'sky') return 'text-sky-500'
+  if (color === 'green') return 'text-green-500'
   return 'text-gray-500'
 }
 
@@ -73,6 +74,7 @@ function seriesOutlineColor(series: string) {
   if (color === 'orange') return 'border-orange-500 dark:border-orange-400'
   if (color === 'red') return 'border-red-500 dark:border-red-400'
   if (color === 'sky') return 'border-sky-500 dark:border-sky-400'
+  if (color === 'green') return 'border-green-500 dark:border-green-400'
   if (color === 'gray') return 'border-gray-700 dark:border-gray-300'
   return 'border-gray-200 dark:border-gray-800'
 }
